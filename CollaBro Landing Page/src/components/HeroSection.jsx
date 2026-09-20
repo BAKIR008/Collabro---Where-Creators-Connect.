@@ -7,7 +7,7 @@ const creatorLabels = [
   { text: 'VIDEO EDITOR', color: '#45D7FF' },
   { text: 'PHOTOGRAPHER', color: '#FFD52E' },
   { text: 'MOTION DESIGNER', color: '#FF3D9A' },
-  { text: 'MUSIC PRODUCER', color: '#7B38FF', textColor: '#fff' },
+  { text: 'Gaaana PRODUCER', color: '#7B38FF', textColor: '#fff' },
   { text: 'UI/UX DESIGNER', color: '#FFD52E' },
   { text: '3D ARTIST', color: '#0B0B0B', textColor: '#fff' },
 ]
