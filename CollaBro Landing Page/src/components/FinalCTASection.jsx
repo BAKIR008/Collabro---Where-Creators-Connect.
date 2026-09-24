@@ -1,4 +1,5 @@
 import { Suspense, lazy } from 'react'
+import { AUTH_APP_URL } from '../config'
 
 const CollabUniverse = lazy(() => import('./CollabUniverse'))
 
@@ -34,14 +35,14 @@ export default function FinalCTASection() {
         </p>
 
         <div className="cta-buttons">
-          <button
-            type="button"
+          <a
+            href={`${AUTH_APP_URL}/signup`}
             className="btn btn-primary btn-lg"
-            aria-label="Join Collabro — placeholder"
+            aria-label="Join Collabro"
             style={{ fontSize: '18px', padding: '20px 44px' }}
           >
             Join Collabro ✦
-          </button>
+          </a>
           <button
             type="button"
             className="btn btn-cyan btn-lg"
