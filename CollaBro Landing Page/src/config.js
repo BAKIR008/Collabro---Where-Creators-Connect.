@@ -1,0 +1,1 @@
+export const AUTH_APP_URL = import.meta.env.VITE_AUTH_APP_URL || 'http://localhost:5111'
