@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { AUTH_APP_URL } from '../config'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -52,20 +53,20 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="navbar-actions">
-          <button
-            type="button"
+          <a
+            href={`${AUTH_APP_URL}/login`}
             className="btn btn-outline btn-sm"
             aria-label="Log in to Collabro"
           >
             Log In
-          </button>
-          <button
-            type="button"
+          </a>
+          <a
+            href={`${AUTH_APP_URL}/signup`}
             className="btn btn-primary btn-sm"
             aria-label="Join Collabro"
           >
             Join Collabro ✦
-          </button>
+          </a>
 
           {/* Mobile hamburger */}
           <button
