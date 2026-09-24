@@ -1,4 +1,5 @@
 import { Suspense, lazy } from 'react'
+import { AUTH_APP_URL } from '../config'
 
 // Lazy-load the heavy 3D canvas
 const CollabUniverse = lazy(() => import('./CollabUniverse'))
@@ -75,13 +76,13 @@ export default function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="hero-buttons">
-            <button
-              type="button"
+            <a
+              href={`${AUTH_APP_URL}/signup`}
               className="btn btn-primary btn-lg"
-              aria-label="Join Collabro — placeholder"
+              aria-label="Join Collabro"
             >
               Join Collabro ✦
-            </button>
+            </a>
             <button
               type="button"
               className="btn btn-secondary btn-lg"
