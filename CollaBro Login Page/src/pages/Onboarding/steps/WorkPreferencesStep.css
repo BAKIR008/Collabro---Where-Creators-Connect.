@@ -1,0 +1,160 @@
+/**
+ * WorkPreferencesStep Styles
+ */
+
+.work-preferences-step {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Optional notice */
+.optional-notice {
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.optional-notice p {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-style: italic;
+}
+
+/* Form sections */
+.form-section {
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.75rem;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  letter-spacing: 0.5px;
+}
+
+.section-help {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0 0 1.5rem 0;
+}
+
+/* Tag input */
+.tag-input-wrapper {
+  margin-bottom: 1rem;
+}
+
+.tag-input {
+  width: 100%;
+  padding: 1rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-primary);
+  border-radius: 8px;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.tag-input:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 4px 0 var(--border-primary);
+}
+
+.tag-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tag-count {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0 0;
+  text-align: right;
+}
+
+/* Tag list */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-height: 60px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 2px solid var(--border-primary);
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  box-shadow: 0 3px 0 var(--border-primary);
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 var(--border-primary);
+}
+
+/* Tag color variants */
+.tag-yellow {
+  background-color: var(--accent-yellow);
+}
+
+.tag-cyan {
+  background-color: var(--accent-cyan);
+}
+
+.tag-magenta {
+  background-color: var(--accent-magenta);
+}
+
+.tag-remove {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.tag-remove:hover {
+  transform: scale(1.2);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-section {
+    margin-bottom: 2rem;
+  }
+}
