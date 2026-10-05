@@ -1,0 +1,30 @@
+/**
+ * OnboardingLayout Styles
+ * Brutalist aesthetic matching landing page
+ */
+
+.onboarding-layout {
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.onboarding-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .onboarding-layout {
+    padding: 1rem;
+  }
+
+  .onboarding-container {
+    max-width: 100%;
+  }
+}

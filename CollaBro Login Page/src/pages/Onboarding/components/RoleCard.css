@@ -1,0 +1,159 @@
+/**
+ * RoleCard Styles
+ * Brutalist design for role selection cards
+ */
+
+.role-card {
+  position: relative;
+  background-color: var(--bg-primary);
+  border: 3px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  min-height: 200px;
+}
+
+.role-card:hover:not(.disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 0 var(--border-primary);
+}
+
+.role-card:active:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 var(--border-primary);
+}
+
+/* Selected state */
+.role-card.selected {
+  border-color: var(--accent-cyan);
+  background-color: rgba(69, 215, 255, 0.05);
+}
+
+/* Primary state */
+.role-card.primary {
+  border-color: var(--accent-yellow);
+  background-color: rgba(255, 213, 46, 0.1);
+  border-width: 4px;
+}
+
+/* Disabled state */
+.role-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary badge */
+.primary-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--accent-yellow);
+  border: 2px solid var(--border-primary);
+  border-radius: 6px;
+  padding: 0.25rem 0.75rem;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  box-shadow: 0 2px 0 var(--border-primary);
+}
+
+/* Role icon */
+.role-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Role label */
+.role-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+/* Role description */
+.role-description {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+  flex-grow: 1;
+}
+
+/* Set as primary button */
+.set-primary-btn {
+  margin-top: auto;
+  padding: 0.5rem 1rem;
+  background-color: var(--accent-yellow);
+  border: 2px solid var(--border-primary);
+  border-radius: 6px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.875rem;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.set-primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 var(--border-primary);
+}
+
+.set-primary-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 0 var(--border-primary);
+}
+
+/* Selection indicator */
+.selection-indicator {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  background-color: var(--bg-primary);
+  transition: all 0.2s ease;
+}
+
+.role-card.selected .selection-indicator {
+  background-color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: var(--text-primary);
+}
+
+.role-card.primary .selection-indicator {
+  background-color: var(--accent-yellow);
+  border-color: var(--accent-yellow);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .role-card {
+    min-height: 180px;
+    padding: 1.25rem;
+  }
+
+  .role-icon {
+    font-size: 2.5rem;
+  }
+
+  .role-label {
+    font-size: 1.25rem;
+  }
+}
