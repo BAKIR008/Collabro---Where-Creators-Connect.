@@ -73,6 +73,29 @@ const userSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
+    onboarding: {
+      status: {
+        type: String,
+        enum: ['not_started', 'in_progress', 'completed'],
+        default: 'not_started',
+      },
+      completedAt: {
+        type: Date,
+        default: null,
+      },
+      version: {
+        type: Number,
+        default: 1,
+      },
+      currentStepId: {
+        type: String,
+        default: null,
+      },
+      lastSavedAt: {
+        type: Date,
+        default: null,
+      },
+    },
   },
   {
     timestamps: true,                            // adds createdAt & updatedAt

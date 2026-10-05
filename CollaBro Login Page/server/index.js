@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/auth.js';
+import onboardingRoutes from './routes/onboarding.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,6 +45,7 @@ app.use('/api/', globalLimiter);
 
 /* ─── Routes ─── */
 app.use('/api/auth', authRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 
 /* ─── Health Check ─── */
 app.get('/api/health', (_req, res) => {
