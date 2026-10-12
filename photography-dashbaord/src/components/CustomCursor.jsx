@@ -12,6 +12,7 @@ export default function CustomCursor() {
     let mouseY = -100
     let ringX = -100
     let ringY = -100
+    const boundElements = new Set()
 
     const onMove = (event) => {
       mouseX = event.clientX
@@ -26,9 +27,9 @@ export default function CustomCursor() {
       ringRef.current?.classList.remove('hovered')
     }
     const bindInteractiveElements = () => {
-      document.querySelectorAll('a, button, input, label, [role="button"]').forEach((element) => {
-        if (element.dataset.cursorBound) return
-        element.dataset.cursorBound = 'true'
+      document.querySelectorAll('a, button, input, label, textarea, select, [role="button"]').forEach((element) => {
+        if (boundElements.has(element)) return
+        boundElements.add(element)
         element.addEventListener('mouseenter', onEnter)
         element.addEventListener('mouseleave', onLeave)
       })
@@ -57,6 +58,10 @@ export default function CustomCursor() {
       window.removeEventListener('mousemove', onMove)
       observer.disconnect()
       cancelAnimationFrame(animationFrame)
+      boundElements.forEach((element) => {
+        element.removeEventListener('mouseenter', onEnter)
+        element.removeEventListener('mouseleave', onLeave)
+      })
     }
   }, [])
 

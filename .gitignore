@@ -1,1 +1,7 @@
-/CollaBro Login Page
+/CollaBro Login Page/*
+!/CollaBro Login Page/server
+/CollaBro Login Page/server/*
+!/CollaBro Login Page/server/models
+!/CollaBro Login Page/server/routes
+!/CollaBro Login Page/server/models/Project.js
+!/CollaBro Login Page/server/routes/projects.js

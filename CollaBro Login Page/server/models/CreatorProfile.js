@@ -17,6 +17,17 @@ const creatorProfileSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Bio cannot exceed 500 characters'],
+      default: '',
+    },
+    interests: [{
+      type: String,
+      trim: true,
+      maxlength: [50, 'Interest cannot exceed 50 characters'],
+    }],
     primaryRole: {
       type: String,
       required: true,
