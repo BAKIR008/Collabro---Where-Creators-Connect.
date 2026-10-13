@@ -53,6 +53,7 @@ export const NavigationButtons = ({
             className={`nav-btn next-btn ${isLastStep ? 'complete-btn' : ''}`}
             onClick={onNext}
             disabled={nextDisabled || isSaving}
+            data-onboarding-next="true"
           >
             {isLastStep ? 'Complete Onboarding ✓' : `${nextLabel} →`}
           </button>
