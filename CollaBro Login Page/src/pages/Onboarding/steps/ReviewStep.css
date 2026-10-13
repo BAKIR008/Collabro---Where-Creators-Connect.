@@ -1,140 +1,16 @@
 /**
- * ReviewStep Styles
+ * ReviewStep Styles - Premium Profile Preview
+ * Redesigned for maximum readability and professional appearance
  */
 
 .review-step {
-  animation: fadeIn 0.3s ease-in;
+  animation: fadeIn 0.4s ease-out;
 }
 
-/* Review container */
-.review-container {
-  background-color: var(--bg-secondary);
-  border: 3px solid var(--border-primary);
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-}
-
-/* Review sections */
-.review-section {
-  padding: 1.5rem 0;
-  border-bottom: 2px solid var(--border-primary);
-}
-
-.review-section:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.review-section:first-child {
-  padding-top: 0;
-}
-
-.review-section-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.75rem;
-  color: var(--text-primary);
-  margin: 0 0 1.5rem 0;
-  letter-spacing: 0.5px;
-}
-
-/* Review items */
-.review-item {
-  margin-bottom: 1.5rem;
-}
-
-.review-item:last-child {
-  margin-bottom: 0;
-}
-
-.review-label {
-  display: block;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.review-value {
-  display: inline-block;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1rem;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.review-value.primary-role {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--accent-yellow);
-}
-
-.capitalize {
-  text-transform: capitalize;
-}
-
-/* Review tags */
-.review-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.review-tag {
-  display: inline-block;
-  background-color: var(--accent-cyan);
-  border: 2px solid var(--border-primary);
-  border-radius: 16px;
-  padding: 0.375rem 0.875rem;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.875rem;
-  color: var(--text-primary);
-  font-weight: 500;
-  box-shadow: 0 2px 0 var(--border-primary);
-}
-
-/* Tag color variants */
-.review-tag.tag-cyan {
-  background-color: var(--accent-cyan);
-}
-
-.review-tag.tag-yellow {
-  background-color: var(--accent-yellow);
-}
-
-.review-tag.tag-magenta {
-  background-color: var(--accent-magenta);
-}
-
-.review-tag.tag-purple {
-  background-color: var(--accent-purple);
-}
-
-/* Review footer */
-.review-footer {
-  background-color: rgba(255, 213, 46, 0.1);
-  border: 3px solid var(--accent-yellow);
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-}
-
-.review-footer-text {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.125rem;
-  color: var(--text-primary);
-  margin: 0;
-  font-weight: 500;
-}
-
-/* Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -142,21 +18,464 @@
   }
 }
 
-/* Responsive */
+/* Main Content Container */
+.review-content {
+  max-width: 920px;
+  margin: 3rem auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ----------------------------------------------------------------
+   PROFILE PREVIEW HEADER
+   ---------------------------------------------------------------- */
+
+.review-profile-header {
+  background: var(--white);
+  border: 2px solid var(--black);
+  border-radius: var(--radius);
+  padding: 2.5rem;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  box-shadow: 4px 4px 0 var(--black);
+}
+
+.review-profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid var(--black);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--offwhite);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.review-profile-avatar-placeholder {
+  color: var(--gray-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-profile-name {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  letter-spacing: 0.02em;
+  color: var(--black);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.1;
+}
+
+.review-profile-title {
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--gray-dark);
+  margin: 0 0 1rem 0;
+  line-height: 1.4;
+}
+
+.review-profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.review-profile-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--black);
+  background: var(--offwhite);
+  color: var(--black);
+}
+
+.review-profile-badge svg {
+  flex-shrink: 0;
+}
+
+.review-profile-badge-primary {
+  background: var(--yellow);
+  border-color: var(--black);
+  color: var(--black);
+}
+
+.review-profile-bio {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--gray-dark);
+  margin: 0;
+  max-width: 600px;
+}
+
+/* ----------------------------------------------------------------
+   REVIEW SECTIONS
+   ---------------------------------------------------------------- */
+
+.review-section {
+  background: var(--white);
+  border: 2px solid var(--black);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 3px 3px 0 var(--black);
+}
+
+.review-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.75rem;
+  background: var(--offwhite);
+  border-bottom: 2px solid var(--black);
+}
+
+.review-section-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.03em;
+  color: var(--black);
+  margin: 0;
+  line-height: 1;
+}
+
+.review-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--yellow);
+  border: 2px solid var(--black);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 2px 2px 0 var(--black);
+}
+
+.review-edit-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--black);
+}
+
+.review-edit-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--black);
+}
+
+.review-edit-btn:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+.review-edit-btn svg {
+  flex-shrink: 0;
+}
+
+.review-section-body {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ----------------------------------------------------------------
+   REVIEW FIELDS
+   ---------------------------------------------------------------- */
+
+.review-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.review-field-label {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray-dark);
+}
+
+.review-field-value {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--black);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* ----------------------------------------------------------------
+   CHIPS & TAGS
+   ---------------------------------------------------------------- */
+
+.review-field-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.review-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--black);
+  background: var(--offwhite);
+  color: var(--black);
+  line-height: 1;
+  transition: all var(--transition);
+}
+
+.review-chip-primary {
+  background: var(--yellow);
+  border-color: var(--black);
+  font-weight: 700;
+}
+
+/* ----------------------------------------------------------------
+   LINKS
+   ---------------------------------------------------------------- */
+
+.review-field-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.review-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--black);
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 2px solid var(--black);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  transition: all var(--transition);
+}
+
+.review-link:hover {
+  background: var(--cyan);
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--black);
+}
+
+.review-link:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+.review-link svg {
+  flex-shrink: 0;
+}
+
+/* ----------------------------------------------------------------
+   FILE INDICATOR
+   ---------------------------------------------------------------- */
+
+.review-file-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--black);
+  padding: 10px 16px;
+  border: 2px solid var(--black);
+  border-radius: var(--radius-sm);
+  background: var(--offwhite);
+}
+
+.review-file-indicator svg {
+  flex-shrink: 0;
+  color: var(--gray-dark);
+}
+
+/* ----------------------------------------------------------------
+   COMPLETION MESSAGE
+   ---------------------------------------------------------------- */
+
+.review-completion-message {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.75rem;
+  background: rgba(69, 215, 255, 0.08);
+  border: 2px solid var(--cyan);
+  border-radius: var(--radius);
+  align-items: flex-start;
+}
+
+.review-completion-message > svg {
+  flex-shrink: 0;
+  color: var(--cyan);
+  margin-top: 2px;
+}
+
+.review-completion-message h4 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
+  color: var(--black);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.review-completion-message p {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--gray-dark);
+  margin: 0;
+}
+
+/* ----------------------------------------------------------------
+   RESPONSIVE DESIGN
+   ---------------------------------------------------------------- */
+
 @media (max-width: 768px) {
-  .review-container {
-    padding: 1.5rem;
+  .review-content {
+    margin-top: 2rem;
+    gap: 1.5rem;
   }
 
-  .review-section {
-    padding: 1.25rem 0;
+  .review-profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem 1.5rem;
+  }
+
+  .review-profile-avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .review-profile-name {
+    font-size: 1.85rem;
+  }
+
+  .review-profile-title {
+    font-size: 1rem;
+  }
+
+  .review-profile-meta {
+    justify-content: center;
+  }
+
+  .review-profile-bio {
+    max-width: 100%;
+  }
+
+  .review-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
   }
 
   .review-section-title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
-  .review-value.primary-role {
-    font-size: 1.125rem;
+  .review-edit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .review-section-body {
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+
+  .review-field-value {
+    font-size: 0.95rem;
+  }
+
+  .review-chip {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+
+  .review-completion-message {
+    flex-direction: column;
+    padding: 1.5rem;
+    text-align: center;
+    align-items: center;
+  }
+
+  .review-completion-message h4 {
+    font-size: 1.15rem;
+  }
+
+  .review-completion-message p {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-profile-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .review-profile-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .review-profile-name {
+    font-size: 1.6rem;
+  }
+
+  .review-section-body {
+    padding: 1rem;
+  }
+
+  .review-field-links {
+    flex-direction: column;
+  }
+
+  .review-link {
+    width: 100%;
+    justify-content: center;
   }
 }
