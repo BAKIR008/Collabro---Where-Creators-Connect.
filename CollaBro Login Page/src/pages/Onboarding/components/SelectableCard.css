@@ -1,0 +1,184 @@
+/* ================================================================
+   SELECTABLE CARD COMPONENT
+   Reusable card with selection state
+   ================================================================ */
+
+.selectable-card {
+  border: 2px solid var(--black);
+  border-radius: var(--radius);
+  padding: 20px;
+  background: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  position: relative;
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+  outline: none;
+  user-select: none;
+}
+
+.selectable-card:hover:not(.disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--black);
+}
+
+.selectable-card:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+.selectable-card.selected {
+  background: var(--black);
+  transform: translate(-3px, -3px);
+  box-shadow: 5px 5px 0 var(--yellow);
+}
+
+.selectable-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icon */
+.selectable-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--black);
+  background: var(--offwhite);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.selectable-card__icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--black);
+}
+
+.selectable-card.selected .selectable-card__icon {
+  background: var(--yellow);
+  border-color: var(--yellow);
+}
+
+/* Body */
+.selectable-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.selectable-card__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+  color: var(--black);
+  margin-bottom: 6px;
+  transition: color var(--transition);
+  line-height: 1.2;
+}
+
+.selectable-card.selected .selectable-card__title {
+  color: var(--white);
+}
+
+.selectable-card__description {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--gray-dark);
+  line-height: 1.5;
+  transition: color var(--transition);
+  margin: 0;
+}
+
+.selectable-card.selected .selectable-card__description {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Checkbox indicator */
+.selectable-card__checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--gray-mid);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  margin-top: 2px;
+}
+
+.selectable-card.selected .selectable-card__checkbox {
+  background: var(--yellow);
+  border-color: var(--yellow);
+}
+
+.selectable-card__checkbox-inner {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--black);
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.selectable-card.selected .selectable-card__checkbox-inner {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Variants */
+.selectable-card--primary.selected {
+  background: var(--yellow);
+  box-shadow: 5px 5px 0 var(--black);
+}
+
+.selectable-card--primary.selected .selectable-card__title {
+  color: var(--black);
+}
+
+.selectable-card--primary.selected .selectable-card__description {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.selectable-card--accent.selected {
+  background: var(--cyan);
+}
+
+.selectable-card--accent.selected .selectable-card__title {
+  color: var(--black);
+}
+
+.selectable-card--accent.selected .selectable-card__description {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .selectable-card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .selectable-card__icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .selectable-card__icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .selectable-card__title {
+    font-size: 1.1rem;
+  }
+
+  .selectable-card__description {
+    font-size: 0.85rem;
+  }
+}
