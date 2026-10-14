@@ -17,6 +17,7 @@ import { body, validationResult } from 'express-validator';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
 import User from '../models/User.js';
+import CreatorProfile from '../models/CreatorProfile.js';
 import { signToken, setTokenCookie, clearTokenCookie } from '../utils/jwt.js';
 import { protect } from '../middleware/auth.js';
 import { sendPasswordResetEmail } from '../utils/email.js';
@@ -337,12 +338,92 @@ router.post('/logout', (req, res) => {
    GET /api/auth/me
    Protected — returns current user info
 ───────────────────────────────────────────────── */
-router.get('/me', protect, (req, res) => {
-  return res.json({
-    success: true,
-    user: req.user.toPublic(),
-  });
+router.get('/me', protect, async (req, res) => {
+  try {
+    const profile = await CreatorProfile.findOne({ user: req.user._id }).select('primaryRole roles skills interests goals');
+    return res.json({
+      success: true,
+      user: {
+        ...req.user.toPublic(),
+        skills: profile?.skills || [],
+        interests: profile?.interests || profile?.goals || [],
+        creatorRole: profile?.primaryRole || req.user.role,
+      },
+    });
+  } catch (err) {
+    console.error('[Get Profile Error]', err);
+    return res.status(500).json({ success: false, message: 'Could not load your profile.' });
+  }
 });
+
+router.patch(
+  '/profile',
+  protect,
+  [
+    body('name').optional().trim().isLength({ min: 3, max: 50 }),
+    body('username').optional({ values: 'falsy' }).trim().matches(/^[a-zA-Z0-9_]{3,30}$/),
+    body('bio').optional().trim().isLength({ max: 500 }),
+    body('profilePicture').optional().trim().isLength({ max: 2048 }),
+    body('skills').optional().isArray({ max: 30 }),
+    body('skills.*').optional().trim().isLength({ min: 1, max: 50 }),
+    body('interests').optional().isArray({ max: 30 }),
+    body('interests.*').optional().trim().isLength({ min: 1, max: 50 }),
+    body('creatorRole').optional().trim().isLength({ min: 2, max: 80 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Please check the profile details and try again.', errors: errors.array() });
+    }
+
+    try {
+      const { name, username, bio, profilePicture, skills, interests, creatorRole } = req.body;
+      if (name !== undefined) req.user.name = name;
+      if (username !== undefined) req.user.username = username || undefined;
+      if (bio !== undefined) req.user.bio = bio;
+      if (profilePicture !== undefined) req.user.profilePicture = profilePicture || null;
+      await req.user.save();
+
+      let profile = null;
+      if (skills !== undefined || interests !== undefined || creatorRole !== undefined) {
+        profile = await CreatorProfile.findOne({ user: req.user._id });
+        if (!profile) {
+          profile = new CreatorProfile({
+            user: req.user._id,
+            primaryRole: req.user.role === 'user' ? 'Photographer' : req.user.role,
+            roles: [req.user.role === 'user' ? 'Photographer' : req.user.role],
+            experienceLevel: 'beginner',
+          });
+        }
+        if (creatorRole !== undefined) {
+          profile.primaryRole = creatorRole;
+          if (!profile.roles.includes(creatorRole)) profile.roles = [...profile.roles, creatorRole];
+        }
+        if (skills !== undefined) profile.skills = skills;
+        if (interests !== undefined) profile.interests = interests;
+        await profile.save({ validateBeforeSave: false });
+      } else {
+        profile = await CreatorProfile.findOne({ user: req.user._id }).select('primaryRole skills interests goals');
+      }
+
+      return res.json({
+        success: true,
+        user: {
+          ...req.user.toPublic(),
+          skills: profile?.skills || [],
+          interests: profile?.interests || profile?.goals || [],
+          creatorRole: profile?.primaryRole || req.user.role,
+        },
+      });
+    } catch (err) {
+      console.error('[Update Profile Error]', err);
+      if (err.code === 11000) {
+        return res.status(409).json({ success: false, message: 'That username is already in use.' });
+      }
+      return res.status(500).json({ success: false, message: 'Could not save your profile.' });
+    }
+  }
+);
 
 /* ─────────────────────────────────────────────────
    POST /api/auth/forgot-password

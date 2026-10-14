@@ -1307,25 +1307,3 @@ button { cursor: none; font-family: var(--font-body); border: none; outline: non
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-/* =====================================================
-   ONBOARDING SYSTEM — Additional Variable Aliases
-   ===================================================== */
-:root {
-  /* Background colors */
-  --bg-primary: var(--offwhite);
-  --bg-secondary: var(--gray);
-
-  /* Text colors */
-  --text-primary: var(--black);
-  --text-secondary: var(--gray-dark);
-
-  /* Accent colors */
-  --accent-yellow: var(--yellow);
-  --accent-cyan: var(--cyan);
-  --accent-magenta: var(--magenta);
-  --accent-purple: var(--purple);
-
-  /* Border */
-  --border-primary: var(--black);
-}

@@ -1,62 +1,66 @@
 import { useEffect, useRef } from 'react'
 
-/**
- * Custom cursor — dot + ring that tracks mouse position.
- * Hides on touch devices.
- */
 export default function CustomCursor() {
-  const dotRef = useRef()
-  const ringRef = useRef()
-  const pos = useRef({ x: 0, y: 0 })
-  const ringPos = useRef({ x: 0, y: 0 })
+  const dotRef = useRef(null)
+  const ringRef = useRef(null)
 
   useEffect(() => {
-    // Don't show custom cursor on touch devices
-    if (window.matchMedia('(hover: none)').matches) return
+    if (!window.matchMedia('(pointer: fine) and (prefers-reduced-motion: no-preference)').matches) return undefined
 
-    const onMove = (e) => {
-      pos.current = { x: e.clientX, y: e.clientY }
-      if (dotRef.current) {
-        dotRef.current.style.left = `${e.clientX}px`
-        dotRef.current.style.top = `${e.clientY}px`
-      }
+    let animationFrame
+    let mouseX = -100
+    let mouseY = -100
+    let ringX = -100
+    let ringY = -100
+    const boundElements = new Set()
+
+    const onMove = (event) => {
+      mouseX = event.clientX
+      mouseY = event.clientY
     }
-
-    let raf
-    const animate = () => {
-      ringPos.current.x += (pos.current.x - ringPos.current.x) * 0.12
-      ringPos.current.y += (pos.current.y - ringPos.current.y) * 0.12
-      if (ringRef.current) {
-        ringRef.current.style.left = `${ringPos.current.x}px`
-        ringRef.current.style.top = `${ringPos.current.y}px`
-      }
-      raf = requestAnimationFrame(animate)
-    }
-
-    const onEnterInteractive = () => {
+    const onEnter = () => {
       dotRef.current?.classList.add('hovered')
       ringRef.current?.classList.add('hovered')
     }
-    const onLeaveInteractive = () => {
+    const onLeave = () => {
       dotRef.current?.classList.remove('hovered')
       ringRef.current?.classList.remove('hovered')
     }
+    const bindInteractiveElements = () => {
+      document.querySelectorAll('a, button, input, label, textarea, select, [role="button"]').forEach((element) => {
+        if (boundElements.has(element)) return
+        boundElements.add(element)
+        element.addEventListener('mouseenter', onEnter)
+        element.addEventListener('mouseleave', onLeave)
+      })
+    }
+    const animate = () => {
+      if (dotRef.current) {
+        dotRef.current.style.left = `${mouseX}px`
+        dotRef.current.style.top = `${mouseY}px`
+      }
+      ringX += (mouseX - ringX) * 0.12
+      ringY += (mouseY - ringY) * 0.12
+      if (ringRef.current) {
+        ringRef.current.style.left = `${ringX}px`
+        ringRef.current.style.top = `${ringY}px`
+      }
+      animationFrame = requestAnimationFrame(animate)
+    }
 
     window.addEventListener('mousemove', onMove)
-    raf = requestAnimationFrame(animate)
-
-    const interactives = document.querySelectorAll('a, button, [role="button"], input, textarea, select, .creator-card, .portfolio-tile, .filter-chip')
-    interactives.forEach(el => {
-      el.addEventListener('mouseenter', onEnterInteractive)
-      el.addEventListener('mouseleave', onLeaveInteractive)
-    })
+    bindInteractiveElements()
+    const observer = new MutationObserver(bindInteractiveElements)
+    observer.observe(document.body, { childList: true, subtree: true })
+    animate()
 
     return () => {
       window.removeEventListener('mousemove', onMove)
-      cancelAnimationFrame(raf)
-      interactives.forEach(el => {
-        el.removeEventListener('mouseenter', onEnterInteractive)
-        el.removeEventListener('mouseleave', onLeaveInteractive)
+      observer.disconnect()
+      cancelAnimationFrame(animationFrame)
+      boundElements.forEach((element) => {
+        element.removeEventListener('mouseenter', onEnter)
+        element.removeEventListener('mouseleave', onLeave)
       })
     }
   }, [])
