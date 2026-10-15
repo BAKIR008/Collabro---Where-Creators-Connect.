@@ -307,7 +307,7 @@ export const OnboardingPage = () => {
       <OnboardingLayout>
       <div className="onboarding-page">
         {toastMessage && (
-          <div style={{ position: 'fixed', top: '20px', right: '20px', background: '#a855f7', color: 'white', padding: '1rem', borderRadius: '8px', zIndex: 1000 }}>
+          <div className="ob-toast">
             {toastMessage}
           </div>
         )}
@@ -326,10 +326,10 @@ export const OnboardingPage = () => {
 
         {/* Validation Errors */}
         {Object.keys(validationErrors).length > 0 && (
-          <div className="validation-errors" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255, 68, 68, 0.1)', borderLeft: '4px solid #ff4444' }}>
+          <div className="validation-errors">
             {Object.values(validationErrors).map((error, index) => (
-              <p key={index} className="error-message" style={{ color: '#ff4444', margin: '0.25rem 0' }}>
-                ⚠️ {error}
+              <p key={index} className="error-message">
+                {error}
               </p>
             ))}
           </div>

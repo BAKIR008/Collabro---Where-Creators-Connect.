@@ -1,29 +1,66 @@
 /**
  * OnboardingLayout Styles
- * Brutalist aesthetic matching landing page
+ * ─────────────────────────────────────────────────────────────────────────────
+ * ROOT CAUSE FIX: The onboarding CSS files reference variables like
+ * --bg-primary, --text-primary, --border-primary, --accent-yellow etc.
+ * but none of these were ever defined. The global index.css defines
+ * --yellow, --black, --offwhite etc. — a completely different naming scheme.
+ *
+ * This file now aliases the brand tokens under the names the onboarding
+ * system expects, scoped under .onboarding-layout so they never bleed
+ * onto other pages.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 
+/* ── Variable aliases: map brand tokens → onboarding system names ── */
 .onboarding-layout {
+  /* Backgrounds */
+  --bg-primary:   #F7F2E8;     /* = var(--offwhite) */
+  --bg-secondary: #FFFDF6;     /* = var(--white) */
+  --bg-card:      #FFFFFF;
+
+  /* Text */
+  --text-primary:   #0B0B0B;   /* = var(--black) */
+  --text-secondary: #6b6560;   /* = var(--gray-dark) */
+  --text-muted:     #9e9890;
+
+  /* Borders */
+  --border-primary: #0B0B0B;   /* = var(--black) */
+  --border-light:   #d4cdc4;
+
+  /* Accents */
+  --accent-yellow:  #FFD52E;   /* = var(--yellow) */
+  --accent-cyan:    #45D7FF;   /* = var(--cyan) */
+  --accent-magenta: #FF3D9A;   /* = var(--magenta) */
+  --accent-purple:  #7B38FF;   /* = var(--purple) */
+
+  /* Shared spacing */
+  --ob-radius:    10px;
+  --ob-radius-sm: 6px;
+  --ob-radius-lg: 16px;
+  --ob-shadow:    4px 4px 0 #0B0B0B;
+  --ob-shadow-sm: 2px 2px 0 #0B0B0B;
+
+  /* Layout */
   min-height: 100vh;
   background-color: var(--bg-primary);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 2rem;
+  padding: 48px 24px;
 }
 
 .onboarding-container {
   width: 100%;
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 768px) {
   .onboarding-layout {
-    padding: 1rem;
+    padding: 24px 16px;
   }
-
   .onboarding-container {
     max-width: 100%;
   }
