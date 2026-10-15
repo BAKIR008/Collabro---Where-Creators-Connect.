@@ -375,9 +375,6 @@ export default function App() {
               <div className="script-eyebrow"><span /> HEY {firstName.toUpperCase()}, YOUR SCRIPT WRITING STUDIO</div>
               <h1>WRITE.<br /><mark>CONNECT.</mark><br /><i>CREATE</i> STORIES.</h1>
               <p>Find your next story arc, build a dream writers room, and bring the words on your pages to life.</p>
-              <button className="script-button script-button-yellow" onClick={() => setProjectModalOpen(true)}>
-                <Icon name="plus" size={17} /> START A SCRIPT <Icon name="arrow" size={16} />
-              </button>
               <div className="script-hero-badges" aria-label="Script writing types">
                 <span className="script-badge badge-purple"><Icon name="pen" size={14} /> Screenplay</span>
                 <span className="script-badge badge-yellow"><Icon name="sparkle" size={14} /> TV Pilot</span>
@@ -556,9 +553,6 @@ export default function App() {
               <h2>QUICK ACTIONS</h2>
               <Icon name="sparkle" size={18} />
             </div>
-            <button className="script-action-primary" onClick={() => setProjectModalOpen(true)}>
-              <Icon name="plus" /> Create a project <Icon name="arrow" size={15} />
-            </button>
             <button onClick={() => uploadInput.current?.click()}>
               <Icon name="upload" /> Upload a script <Icon name="arrow" size={15} />
             </button>
@@ -659,21 +653,6 @@ export default function App() {
             </div>
           </section>
 
-          {/* WEEKLY STATS CARD */}
-          <section className="script-weekly-card">
-            <div className="script-weekly-icon">
-              <Icon name="pen" size={18} />
-            </div>
-            <span className="script-eyebrow">YOUR WEEK IN FRAMES</span>
-            <strong>6,240</strong>
-            <p>people discovered your work this week</p>
-            <div className="script-weekly-chart" aria-label="Words written rising through the week">
-              {[24, 39, 31, 52, 43, 67, 56, 84, 71, 100, 78, 92].map((height, index) => (
-                <i key={index} style={{ height: `${height}%` }} />
-              ))}
-            </div>
-            <span className="script-weekly-growth">↗ 18% from last week</span>
-          </section>
         </aside>
       </div>
 
