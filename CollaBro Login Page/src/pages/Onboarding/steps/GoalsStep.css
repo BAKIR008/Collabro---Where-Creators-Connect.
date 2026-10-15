@@ -9,112 +9,153 @@
 /* Goals info */
 .goals-info {
   background-color: var(--bg-secondary);
-  border: 2px solid var(--border-primary);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--ob-radius);
+  padding: 1.25rem 1.5rem;
   margin-bottom: 2rem;
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
 .info-text {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
-  margin: 0 0 0.75rem 0;
+  margin: 0;
 }
 
 .selection-count {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.5rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.02em;
 }
 
 .valid-indicator {
-  color: var(--accent-yellow);
-  margin-left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+  flex-shrink: 0;
 }
 
 /* Goals grid */
 .goals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
 }
 
 .goal-card {
   position: relative;
   background-color: var(--bg-primary);
-  border: 3px solid var(--border-primary);
-  border-radius: 12px;
-  padding: 1.75rem;
+  border: 2px solid var(--border-light);
+  border-radius: var(--ob-radius);
+  padding: 24px 20px 20px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.75rem;
-  min-height: 180px;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 160px;
+  user-select: none;
 }
 
-.goal-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 0 var(--border-primary);
+.goal-card:hover:not(.selected) {
+  border-color: #b0aba2;
+  background-color: var(--bg-secondary);
+  transform: translateY(-1px);
 }
 
-.goal-card:active {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 0 var(--border-primary);
+.goal-card:focus-visible {
+  outline: 3px solid var(--accent-cyan);
+  outline-offset: 2px;
 }
 
 .goal-card.selected {
-  border-color: var(--accent-magenta);
-  background-color: rgba(255, 61, 154, 0.05);
+  border-color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  box-shadow: var(--ob-shadow-sm);
 }
 
-.goal-icon {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
+/* Text abbreviation icon */
+.goal-abbr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ob-radius-sm);
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-light);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-bottom: 4px;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.goal-card.selected .goal-abbr {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--bg-secondary);
 }
 
 .goal-label {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.5rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: 0.5px;
+  line-height: 1.3;
+  padding-right: 28px; /* don't overlap checkbox */
 }
 
 .goal-description {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
   margin: 0;
   flex-grow: 1;
+  line-height: 1.45;
 }
 
+/* Checkbox indicator in top-right */
 .goal-checkbox {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
-  border: 2px solid var(--border-primary);
+  top: 14px;
+  right: 14px;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border-light);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
-  background-color: var(--bg-primary);
-  transition: all 0.2s ease;
+  background: var(--bg-primary);
+  transition: border-color 0.15s ease, background 0.15s ease;
+  color: var(--bg-secondary);
+  flex-shrink: 0;
 }
 
 .goal-card.selected .goal-checkbox {
-  background-color: var(--accent-magenta);
-  border-color: var(--accent-magenta);
-  color: var(--text-primary);
+  background: var(--text-primary);
+  border-color: var(--text-primary);
 }
 
 /* Animation */
@@ -132,16 +173,18 @@
 /* Responsive */
 @media (max-width: 768px) {
   .goals-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
   }
 
   .goal-card {
-    padding: 1.5rem;
-    min-height: 160px;
+    padding: 20px 16px 16px;
+    min-height: 140px;
   }
 
-  .goal-icon {
-    font-size: 2.5rem;
+  .goals-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }

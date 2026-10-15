@@ -45,7 +45,7 @@ export const AboutYouStep = ({ data, onChange }) => {
             onChange={handleImageUpload}
             onRemove={handleImageRemove}
             title="Upload Your Photo"
-            subtitle="Show your face! Photos help build trust. JPG, PNG, or WebP • Max 5MB"
+            subtitle="Show your face! Photos help build trust. JPG, PNG, or WebP — Max 5MB"
           />
         </div>
 

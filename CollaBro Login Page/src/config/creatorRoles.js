@@ -4,41 +4,44 @@
  *
  * Single source of truth for the 5 supported freelancer roles.
  * Must stay in sync with server/utils/creatorRoles.js.
+ *
+ * icon: Short 2-letter abbreviation rendered in a styled container.
+ *       No emojis — SVG-friendly text codes only.
  */
 
 export const CREATOR_ROLES = [
   {
     id: 'video-editor',
     label: 'Video Editor',
-    icon: '🎬',
+    icon: 'VE',
     description: 'Transform raw footage into compelling narratives',
     category: 'video',
   },
   {
     id: 'content-creator',
     label: 'Content Creator',
-    icon: '✨',
+    icon: 'CC',
     description: 'Create multi-format content across platforms',
     category: 'content',
   },
   {
     id: 'thumbnail-maker',
     label: 'Thumbnail Maker',
-    icon: '🖼️',
+    icon: 'TM',
     description: 'Design eye-catching thumbnails that drive clicks',
     category: 'design',
   },
   {
     id: 'script-writer',
     label: 'Script Writer',
-    icon: '✍️',
+    icon: 'SW',
     description: 'Write compelling scripts for videos and content',
     category: 'content',
   },
   {
     id: 'photographer',
     label: 'Photographer',
-    icon: '📷',
+    icon: 'PH',
     description: 'Capture stunning visual moments',
     category: 'visual',
   },

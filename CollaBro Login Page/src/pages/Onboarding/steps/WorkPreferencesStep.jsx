@@ -116,7 +116,6 @@ export const WorkPreferencesStep = ({ data, onChange }) => {
   return (
     <div className="work-preferences-step">
       <StepHeader
-        icon="⚙️"
         title="Work Preferences"
         subtitle="Tell us more about your creative preferences (optional)"
       />
@@ -155,7 +154,9 @@ export const WorkPreferencesStep = ({ data, onChange }) => {
                 onClick={() => handleRemoveCategory(category)}
                 aria-label={`Remove ${category}`}
               >
-                ×
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
           ))}
@@ -192,7 +193,9 @@ export const WorkPreferencesStep = ({ data, onChange }) => {
                 onClick={() => handleRemoveIndustry(industry)}
                 aria-label={`Remove ${industry}`}
               >
-                ×
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
           ))}
@@ -229,7 +232,9 @@ export const WorkPreferencesStep = ({ data, onChange }) => {
                 onClick={() => handleRemoveStyle(style)}
                 aria-label={`Remove ${style}`}
               >
-                ×
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
           ))}

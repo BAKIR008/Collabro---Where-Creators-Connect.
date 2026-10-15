@@ -93,7 +93,7 @@ export const ExpertiseStep = ({ data, onChange }) => {
                       className="ob-role-badge ob-role-badge-primary"
                       aria-label={`${role.label} is your primary role`}
                     >
-                      ★ PRIMARY
+                      PRIMARY
                     </div>
                   )}
                 </div>
@@ -151,10 +151,10 @@ export const ExpertiseStep = ({ data, onChange }) => {
           </div>
           <div className="ob-level-grid">
             {[
-              { id: 'beginner',     icon: '🌱', label: 'Beginner',     years: '0-1 years' },
-              { id: 'intermediate', icon: '🚀', label: 'Intermediate', years: '1-3 years' },
-              { id: 'advanced',     icon: '⭐', label: 'Advanced',     years: '3-5 years' },
-              { id: 'expert',       icon: '🏆', label: 'Expert',       years: '5+ years' },
+              { id: 'beginner',     label: 'Beginner',     years: '0-1 years' },
+              { id: 'intermediate', label: 'Intermediate', years: '1-3 years' },
+              { id: 'advanced',     label: 'Advanced',     years: '3-5 years' },
+              { id: 'expert',       label: 'Expert',       years: '5+ years' },
             ].map((level) => (
               <div
                 key={level.id}
@@ -171,7 +171,6 @@ export const ExpertiseStep = ({ data, onChange }) => {
                 aria-checked={experienceLevel === level.id}
                 aria-label={`${level.label}: ${level.years}`}
               >
-                <div className="ob-level-icon" aria-hidden="true">{level.icon}</div>
                 <div className="ob-level-name">{level.label}</div>
                 <div className="ob-level-years">{level.years}</div>
               </div>
