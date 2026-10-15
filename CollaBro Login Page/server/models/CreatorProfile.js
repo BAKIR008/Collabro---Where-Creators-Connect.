@@ -1,12 +1,14 @@
 /**
  * CollaBro — Creator Profile Model
  * server/models/CreatorProfile.js
- * 
+ *
  * Stores creator-specific information from onboarding survey.
  * One profile per user (1:1 relationship with User model).
+ * primaryRole is a single string from the 5 supported roles.
  */
 
 import mongoose from 'mongoose';
+import { VALID_ROLE_IDS } from '../utils/creatorRoles.js';
 
 const creatorProfileSchema = new mongoose.Schema(
   {
@@ -17,30 +19,26 @@ const creatorProfileSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
+    // 'freelancer' or 'client'
+    accountType: {
+      type: String,
+      enum: ['freelancer', 'client'],
+      required: true,
+    },
     bio: {
       type: String,
       trim: true,
       maxlength: [500, 'Bio cannot exceed 500 characters'],
       default: '',
     },
-    interests: [{
-      type: String,
-      trim: true,
-      maxlength: [50, 'Interest cannot exceed 50 characters'],
-    }],
+    // Freelancer-only fields
     primaryRole: {
       type: String,
-      required: true,
-      index: true,
-    },
-    roles: [{
-      type: String,
-      required: true,
-    }],
-    customRole: {
-      type: String,
+      enum: {
+        values: [...VALID_ROLE_IDS, null],
+        message: 'Invalid role: {VALUE}',
+      },
       default: null,
-      maxlength: [100, 'Custom role cannot exceed 100 characters'],
     },
     skills: [{
       type: String,
@@ -49,7 +47,7 @@ const creatorProfileSchema = new mongoose.Schema(
     experienceLevel: {
       type: String,
       enum: ['beginner', 'intermediate', 'advanced', 'expert'],
-      required: true,
+      default: null,
     },
     tools: [{
       type: String,
@@ -67,9 +65,7 @@ const creatorProfileSchema = new mongoose.Schema(
       ],
     }],
     collaborationPreferences: {
-      creatorRoles: [{
-        type: String,
-      }],
+      creatorRoles: [{ type: String }],
       projectTypes: [{
         type: String,
         maxlength: [50, 'Project type cannot exceed 50 characters'],
@@ -84,29 +80,24 @@ const creatorProfileSchema = new mongoose.Schema(
       },
     },
     workPreferences: {
-      categories: [{
-        type: String,
-        maxlength: [50, 'Category cannot exceed 50 characters'],
-      }],
-      industries: [{
-        type: String,
-        maxlength: [50, 'Industry cannot exceed 50 characters'],
-      }],
-      style: [{
-        type: String,
-        maxlength: [50, 'Style cannot exceed 50 characters'],
-      }],
+      categories: [{ type: String, maxlength: [50] }],
+      industries: [{ type: String, maxlength: [50] }],
+      style: [{ type: String, maxlength: [50] }],
     },
+    // Client-only fields
+    clientNeeds: [{ type: String }],
+    company: { type: String, maxlength: [100], default: '' },
+    profileTitle: { type: String, maxlength: [100], default: '' },
+    displayName: { type: String, maxlength: [100], default: '' },
   },
   {
     timestamps: true,
   }
 );
 
-// Index for efficient queries
+// Indexes for efficient queries
 creatorProfileSchema.index({ primaryRole: 1, createdAt: -1 });
-creatorProfileSchema.index({ roles: 1 });
-creatorProfileSchema.index({ 'collaborationPreferences.creatorRoles': 1 });
+creatorProfileSchema.index({ accountType: 1 });
 
 const CreatorProfile = mongoose.model('CreatorProfile', creatorProfileSchema);
 export default CreatorProfile;

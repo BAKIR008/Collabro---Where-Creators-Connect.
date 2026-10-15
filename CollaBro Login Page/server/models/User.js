@@ -153,6 +153,8 @@ userSchema.methods.toPublic = function () {
     providers: this.providers,
     isEmailVerified: this.isEmailVerified,
     createdAt: this.createdAt,
+    onboardingCompleted: this.onboarding?.status === 'completed',
+    onboardingStatus: this.onboarding?.status || 'not_started',
   };
 };
 

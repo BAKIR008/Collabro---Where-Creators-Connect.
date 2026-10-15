@@ -146,17 +146,14 @@ export const OnboardingPage = () => {
         break;
 
       case 'expertise':
-        if (!formData.roles || formData.roles.length === 0) {
-          errors.roles = 'Please select at least one role';
-        }
         if (!formData.primaryRole) {
-          errors.primaryRole = 'Please select a primary role';
+          errors.primaryRole = 'Please select your primary role';
         }
         if (!formData.experienceLevel) {
           errors.experienceLevel = 'Please select your experience level';
         }
         if (!formData.skills || formData.skills.length === 0) {
-          errors.skills = 'Please add at least one skill';
+          errors.skills = 'Please select at least one skill';
         }
         break;
 
@@ -232,6 +229,7 @@ export const OnboardingPage = () => {
 
   /**
    * Handle complete onboarding
+   * After completion, route based on accountType + primaryRole
    */
   const handleComplete = async () => {
     if (!validateCurrentStep()) {
@@ -240,9 +238,25 @@ export const OnboardingPage = () => {
 
     const result = await completeOnboarding(formData);
     if (result.success) {
-      navigate('/dashboard');
+      // Role-aware routing
+      const role = formData.primaryRole;
+      const accType = formData.accountType;
+
+      if (accType === 'freelancer') {
+        if (role === 'photographer') {
+          navigate('/photographer-dashboard');
+        } else if (role === 'script-writer') {
+          navigate('/script-dashboard');
+        } else {
+          // Other roles: role-aware "coming soon" via DashboardPage
+          navigate('/dashboard');
+        }
+      } else {
+        // Client
+        navigate('/dashboard');
+      }
     } else {
-      setValidationErrors({ server: result.message || 'Failed to complete onboarding' });
+      setValidationErrors({ server: result.message || 'Failed to complete onboarding. Please try again.' });
     }
   };
 

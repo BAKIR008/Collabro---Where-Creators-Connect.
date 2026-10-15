@@ -340,14 +340,17 @@ router.post('/logout', (req, res) => {
 ───────────────────────────────────────────────── */
 router.get('/me', protect, async (req, res) => {
   try {
-    const profile = await CreatorProfile.findOne({ user: req.user._id }).select('primaryRole roles skills interests goals');
+    const userWithOnboarding = await User.findById(req.user._id).select('onboarding');
+    const profile = await CreatorProfile.findOne({ user: req.user._id }).select('primaryRole accountType skills bio displayName');
     return res.json({
       success: true,
       user: {
         ...req.user.toPublic(),
+        onboardingCompleted: userWithOnboarding?.onboarding?.status === 'completed',
+        onboardingStatus: userWithOnboarding?.onboarding?.status || 'not_started',
+        primaryRole: profile?.primaryRole || null,
+        accountType: profile?.accountType || null,
         skills: profile?.skills || [],
-        interests: profile?.interests || profile?.goals || [],
-        creatorRole: profile?.primaryRole || req.user.role,
       },
     });
   } catch (err) {
@@ -368,7 +371,6 @@ router.patch(
     body('skills.*').optional().trim().isLength({ min: 1, max: 50 }),
     body('interests').optional().isArray({ max: 30 }),
     body('interests.*').optional().trim().isLength({ min: 1, max: 50 }),
-    body('creatorRole').optional().trim().isLength({ min: 2, max: 80 }),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -377,7 +379,7 @@ router.patch(
     }
 
     try {
-      const { name, username, bio, profilePicture, skills, interests, creatorRole } = req.body;
+      const { name, username, bio, profilePicture, skills, interests } = req.body;
       if (name !== undefined) req.user.name = name;
       if (username !== undefined) req.user.username = username || undefined;
       if (bio !== undefined) req.user.bio = bio;
@@ -385,34 +387,21 @@ router.patch(
       await req.user.save();
 
       let profile = null;
-      if (skills !== undefined || interests !== undefined || creatorRole !== undefined) {
+      if (skills !== undefined || interests !== undefined) {
         profile = await CreatorProfile.findOne({ user: req.user._id });
-        if (!profile) {
-          profile = new CreatorProfile({
-            user: req.user._id,
-            primaryRole: req.user.role === 'user' ? 'Photographer' : req.user.role,
-            roles: [req.user.role === 'user' ? 'Photographer' : req.user.role],
-            experienceLevel: 'beginner',
-          });
-        }
-        if (creatorRole !== undefined) {
-          profile.primaryRole = creatorRole;
-          if (!profile.roles.includes(creatorRole)) profile.roles = [...profile.roles, creatorRole];
-        }
-        if (skills !== undefined) profile.skills = skills;
-        if (interests !== undefined) profile.interests = interests;
-        await profile.save({ validateBeforeSave: false });
+        if (skills !== undefined && profile) profile.skills = skills;
+        if (profile) await profile.save({ validateBeforeSave: false });
       } else {
-        profile = await CreatorProfile.findOne({ user: req.user._id }).select('primaryRole skills interests goals');
+        profile = await CreatorProfile.findOne({ user: req.user._id }).select('primaryRole accountType skills');
       }
 
       return res.json({
         success: true,
         user: {
           ...req.user.toPublic(),
+          primaryRole: profile?.primaryRole || null,
+          accountType: profile?.accountType || null,
           skills: profile?.skills || [],
-          interests: profile?.interests || profile?.goals || [],
-          creatorRole: profile?.primaryRole || req.user.role,
         },
       });
     } catch (err) {

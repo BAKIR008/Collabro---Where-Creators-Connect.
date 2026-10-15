@@ -147,11 +147,12 @@ export const useOnboarding = () => {
       }
 
       const responseData = await response.json();
+      // New backend returns: { success, onboarding: { status, completedAt }, primaryRole, accountType }
       setStatus({
         status: 'completed',
-        completedAt: responseData.user.onboarding.completedAt,
+        completedAt: responseData.onboarding?.completedAt || new Date().toISOString(),
       });
-      return { success: true, user: responseData.user };
+      return { success: true, data: responseData };
     } catch (err) {
       console.error('[useOnboarding] completeOnboarding error:', err);
       setError(err.message);
