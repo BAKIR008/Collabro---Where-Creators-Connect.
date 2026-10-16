@@ -1,0 +1,121 @@
+/**
+ * CreatorIdentityStep Styles
+ */
+
+.creator-identity-step {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Selection info */
+.selection-info {
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.info-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem 0;
+}
+
+.info-text strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.selection-count {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.valid-indicator {
+  color: var(--accent-yellow);
+  margin-left: 0.5rem;
+}
+
+/* Role grid */
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Custom role input */
+.custom-role-input {
+  background-color: rgba(255, 213, 46, 0.1);
+  border: 3px solid var(--accent-yellow);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+.input-label {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.text-input {
+  width: 100%;
+  padding: 1rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-primary);
+  border-radius: 8px;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 4px 0 var(--border-primary);
+}
+
+.input-help {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0 0;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .role-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .selection-info {
+    padding: 1.25rem;
+  }
+
+  .custom-role-input {
+    padding: 1.5rem;
+  }
+}

@@ -1,7 +1,7 @@
 /**
  * CollaBro — Onboarding Routes
  * server/routes/onboarding.js
- * 
+ *
  * POST /api/onboarding/complete      — Complete onboarding and save profile
  * GET  /api/onboarding/status        — Get onboarding status
  * GET  /api/onboarding/responses     — Get saved draft responses
@@ -14,7 +14,7 @@ import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import CreatorProfile from '../models/CreatorProfile.js';
 import { protect } from '../middleware/auth.js';
-import { CREATOR_ROLES, isValidRole } from '../utils/creatorRoles.js';
+import { CREATOR_ROLES, isValidRole, VALID_ROLE_IDS } from '../utils/creatorRoles.js';
 
 const router = express.Router();
 
@@ -27,10 +27,7 @@ router.get('/status', protect, async (req, res) => {
     const user = await User.findById(req.user._id).select('onboarding');
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found.',
-      });
+      return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
     return res.json({
@@ -45,21 +42,19 @@ router.get('/status', protect, async (req, res) => {
     });
   } catch (err) {
     console.error('[Onboarding Status Error]', err);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error. Please try again.',
-    });
+    return res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 });
 
 /* ─────────────────────────────────────────────────
    GET /api/onboarding/config
-   Returns creator roles catalogue
+   Returns creator roles catalogue (public subset)
 ───────────────────────────────────────────────── */
 router.get('/config', protect, (req, res) => {
   return res.json({
     success: true,
     roles: CREATOR_ROLES,
+    validRoleIds: VALID_ROLE_IDS,
     version: 1,
   });
 });
@@ -73,32 +68,30 @@ router.get('/responses', protect, async (req, res) => {
     const profile = await CreatorProfile.findOne({ user: req.user._id });
 
     if (!profile) {
-      return res.json({
-        success: true,
-        profile: null,
-      });
+      return res.json({ success: true, profile: null });
     }
 
     return res.json({
       success: true,
       profile: {
+        accountType: profile.accountType,
         primaryRole: profile.primaryRole,
-        roles: profile.roles,
-        customRole: profile.customRole,
         skills: profile.skills,
         experienceLevel: profile.experienceLevel,
         tools: profile.tools,
         goals: profile.goals,
         collaborationPreferences: profile.collaborationPreferences,
         workPreferences: profile.workPreferences,
+        clientNeeds: profile.clientNeeds,
+        company: profile.company,
+        profileTitle: profile.profileTitle,
+        displayName: profile.displayName,
+        bio: profile.bio,
       },
     });
   } catch (err) {
     console.error('[Get Responses Error]', err);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error. Please try again.',
-    });
+    return res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 });
 
@@ -121,38 +114,34 @@ router.patch('/responses', protect, async (req, res) => {
     let profile = await CreatorProfile.findOne({ user: req.user._id });
 
     if (!profile) {
-      profile = new CreatorProfile({ user: req.user._id });
+      profile = new CreatorProfile({
+        user: req.user._id,
+        // accountType is required — default to 'freelancer' until user selects
+        accountType: responses.accountType || 'freelancer',
+      });
     }
 
-    // Update only provided fields — flat fields are straightforward
-    if (responses.roles !== undefined) profile.roles = responses.roles;
+    // Update only provided fields
+    if (responses.accountType !== undefined) profile.accountType = responses.accountType;
     if (responses.primaryRole !== undefined) profile.primaryRole = responses.primaryRole;
-    if (responses.customRole !== undefined) profile.customRole = responses.customRole;
     if (responses.skills !== undefined) profile.skills = responses.skills;
     if (responses.experienceLevel !== undefined) profile.experienceLevel = responses.experienceLevel;
     if (responses.tools !== undefined) profile.tools = responses.tools;
     if (responses.goals !== undefined) profile.goals = responses.goals;
+    if (responses.clientNeeds !== undefined) profile.clientNeeds = responses.clientNeeds;
+    if (responses.company !== undefined) profile.company = responses.company;
+    if (responses.profileTitle !== undefined) profile.profileTitle = responses.profileTitle;
+    if (responses.displayName !== undefined) profile.displayName = responses.displayName;
+    if (responses.bio !== undefined) profile.bio = responses.bio;
 
-    // Nested subdocuments: merge field-by-field and call markModified so
-    // Mongoose detects the change. Direct object replacement can leave
-    // Mongoose unaware of which paths changed.
     if (responses.collaborationPreferences !== undefined) {
       const existing = profile.collaborationPreferences || {};
       const incoming = responses.collaborationPreferences;
-
       profile.collaborationPreferences = {
-        creatorRoles: incoming.creatorRoles !== undefined
-          ? incoming.creatorRoles
-          : (existing.creatorRoles || []),
-        projectTypes: incoming.projectTypes !== undefined
-          ? incoming.projectTypes
-          : (existing.projectTypes || []),
-        duration: incoming.duration !== undefined
-          ? incoming.duration
-          : existing.duration,
-        workMode: incoming.workMode !== undefined
-          ? incoming.workMode
-          : existing.workMode,
+        creatorRoles: incoming.creatorRoles !== undefined ? incoming.creatorRoles : (existing.creatorRoles || []),
+        projectTypes: incoming.projectTypes !== undefined ? incoming.projectTypes : (existing.projectTypes || []),
+        duration: incoming.duration !== undefined ? incoming.duration : existing.duration,
+        workMode: incoming.workMode !== undefined ? incoming.workMode : existing.workMode,
       };
       profile.markModified('collaborationPreferences');
     }
@@ -160,15 +149,9 @@ router.patch('/responses', protect, async (req, res) => {
     if (responses.workPreferences !== undefined) {
       const existing = profile.workPreferences || {};
       const incoming = responses.workPreferences;
-
       profile.workPreferences = {
-        categories: incoming.categories !== undefined
-          ? incoming.categories
-          : (existing.categories || []),
-        industries: incoming.industries !== undefined
-          ? incoming.industries
-          : (existing.industries || []),
-        // Always store style as an array — guard against accidental string submission
+        categories: incoming.categories !== undefined ? incoming.categories : (existing.categories || []),
+        industries: incoming.industries !== undefined ? incoming.industries : (existing.industries || []),
         style: incoming.style !== undefined
           ? (Array.isArray(incoming.style) ? incoming.style : [])
           : (Array.isArray(existing.style) ? existing.style : []),
@@ -179,10 +162,7 @@ router.patch('/responses', protect, async (req, res) => {
     // Save with validation disabled — drafts may be incomplete
     await profile.save({ validateBeforeSave: false });
 
-    return res.json({
-      success: true,
-      message: 'Draft saved successfully.',
-    });
+    return res.json({ success: true, message: 'Draft saved successfully.' });
   } catch (err) {
     console.error('[Save Draft Error]', err);
     return res.status(500).json({
@@ -195,68 +175,81 @@ router.patch('/responses', protect, async (req, res) => {
 /* ─────────────────────────────────────────────────
    POST /api/onboarding/complete
    Complete onboarding and save final profile
+   Handles both freelancer and client account types.
 ───────────────────────────────────────────────── */
 router.post(
   '/complete',
   protect,
   [
-    // Basic required fields
-    body('roles')
-      .isArray({ min: 1, max: 5 })
-      .withMessage('Select 1-5 creator roles.'),
-    body('roles.*')
-      .custom((value) => {
-        if (!isValidRole(value) && value !== 'other') {
-          throw new Error(`Invalid role: ${value}`);
-        }
-        return true;
-      }),
+    body('accountType')
+      .isIn(['freelancer', 'client'])
+      .withMessage('Account type must be "freelancer" or "client".'),
+
+    // Freelancer-only: primaryRole must be one of the 5 supported roles
     body('primaryRole')
+      .if(body('accountType').equals('freelancer'))
       .notEmpty()
-      .withMessage('Primary role is required.')
-      .custom((value, { req }) => {
-        if (!req.body.roles || !req.body.roles.includes(value)) {
-          throw new Error('Primary role must be one of your selected roles.');
+      .withMessage('Primary role is required for freelancers.')
+      .custom((value) => {
+        if (!isValidRole(value)) {
+          throw new Error(`Invalid role: ${value}. Must be one of: ${VALID_ROLE_IDS.join(', ')}`);
         }
         return true;
       }),
+
     body('experienceLevel')
+      .if(body('accountType').equals('freelancer'))
       .isIn(['beginner', 'intermediate', 'advanced', 'expert'])
-      .withMessage('Valid experience level required.'),
+      .withMessage('Valid experience level is required for freelancers.'),
+
     body('skills')
+      .if(body('accountType').equals('freelancer'))
       .isArray({ min: 1, max: 15 })
-      .withMessage('Add at least 1 skill (max 15).'),
+      .withMessage('Add at least 1 skill (max 15) for freelancers.'),
+
     body('goals')
+      .if(body('accountType').equals('freelancer'))
       .isArray({ min: 1 })
-      .withMessage('Select at least one goal.'),
+      .withMessage('Select at least one goal for freelancers.'),
+
     body('goals.*')
+      .if(body('accountType').equals('freelancer'))
       .isIn(['find-collaborators', 'build-portfolio', 'learn-skills', 'earn-income', 'network', 'get-discovered'])
       .withMessage('Invalid goal value.'),
-    
-    // Collaboration preferences validation
+
     body('collaborationPreferences.creatorRoles')
+      .if(body('accountType').equals('freelancer'))
       .isArray({ min: 1 })
       .withMessage('Select at least one collaborator role.'),
+
     body('collaborationPreferences.projectTypes')
+      .if(body('accountType').equals('freelancer'))
       .isArray({ min: 1 })
       .withMessage('Select at least one project type.'),
+
     body('collaborationPreferences.duration')
+      .if(body('accountType').equals('freelancer'))
       .isIn(['one-time', 'short-term', 'long-term', 'ongoing'])
       .withMessage('Invalid duration value.'),
+
     body('collaborationPreferences.workMode')
+      .if(body('accountType').equals('freelancer'))
       .isIn(['remote', 'in-person', 'hybrid'])
       .withMessage('Invalid work mode value.'),
-    
-    // Optional fields validation
+
+    // Optional fields
     body('tools').optional().isArray({ max: 15 }),
-    body('customRole').optional().isString().isLength({ max: 100 }),
     body('workPreferences.categories').optional().isArray({ max: 10 }),
     body('workPreferences.industries').optional().isArray({ max: 10 }),
     body('workPreferences.style').optional().isArray({ max: 8 }),
+    body('bio').optional().isString().isLength({ max: 500 }),
+    body('displayName').optional().isString().isLength({ max: 100 }),
+    body('profileTitle').optional().isString().isLength({ max: 100 }),
+    body('company').optional().isString().isLength({ max: 100 }),
+    body('clientNeeds').optional().isArray({ max: 20 }),
   ],
   async (req, res) => {
     try {
-      // Validate
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({
@@ -267,55 +260,63 @@ router.post(
       }
 
       const {
-        roles,
+        accountType,
         primaryRole,
-        customRole,
         skills,
         experienceLevel,
         tools,
         goals,
         collaborationPreferences,
         workPreferences,
+        clientNeeds,
+        company,
+        profileTitle,
+        displayName,
+        bio,
       } = req.body;
 
       // Create or update profile — upsert pattern prevents duplicates
       let profile = await CreatorProfile.findOne({ user: req.user._id });
-
       if (!profile) {
         profile = new CreatorProfile({ user: req.user._id });
       }
 
-      // Assign flat fields
-      profile.roles = roles;
-      profile.primaryRole = primaryRole;
-      profile.customRole = customRole || null;
-      profile.skills = skills || [];
-      profile.experienceLevel = experienceLevel;
-      profile.tools = tools || [];
-      profile.goals = goals || [];
+      profile.accountType = accountType;
+      profile.bio = bio || '';
+      profile.displayName = displayName || '';
+      profile.profileTitle = profileTitle || '';
 
-      // Assign nested collaborationPreferences field-by-field to avoid
-      // Mongoose losing track of changes on a subdocument replacement.
-      const collab = collaborationPreferences || {};
-      profile.collaborationPreferences = {
-        creatorRoles: collab.creatorRoles || [],
-        projectTypes: collab.projectTypes || [],
-        duration: collab.duration || undefined,
-        workMode: collab.workMode || undefined,
-      };
-      profile.markModified('collaborationPreferences');
+      if (accountType === 'freelancer') {
+        profile.primaryRole = primaryRole;
+        profile.skills = skills || [];
+        profile.experienceLevel = experienceLevel;
+        profile.tools = tools || [];
+        profile.goals = goals || [];
 
-      // Assign nested workPreferences field-by-field
-      const work = workPreferences || {};
-      profile.workPreferences = {
-        categories: work.categories || [],
-        industries: work.industries || [],
-        style: Array.isArray(work.style) ? work.style : [],
-      };
-      profile.markModified('workPreferences');
+        const collab = collaborationPreferences || {};
+        profile.collaborationPreferences = {
+          creatorRoles: collab.creatorRoles || [],
+          projectTypes: collab.projectTypes || [],
+          duration: collab.duration || undefined,
+          workMode: collab.workMode || undefined,
+        };
+        profile.markModified('collaborationPreferences');
 
-      // Save profile FIRST — only mark onboarding complete if it succeeds.
-      // This keeps the User document consistent with the profile document.
+        const work = workPreferences || {};
+        profile.workPreferences = {
+          categories: work.categories || [],
+          industries: work.industries || [],
+          style: Array.isArray(work.style) ? work.style : [],
+        };
+        profile.markModified('workPreferences');
+      } else {
+        // Client
+        profile.primaryRole = null;
+        profile.clientNeeds = clientNeeds || [];
+        profile.company = company || '';
+      }
+
+      // Save profile FIRST — only mark onboarding complete if it succeeds
       await profile.save();
 
       // Mark onboarding complete only after successful profile save
@@ -325,34 +326,27 @@ router.post(
         'onboarding.version': 1,
       });
 
-      console.log(`✅ Onboarding completed for user ${req.user.email}`);
+      console.log(`✅ Onboarding completed for user ${req.user.email} (accountType: ${accountType}${accountType === 'freelancer' ? `, role: ${primaryRole}` : ''})`);
 
       return res.json({
         success: true,
         message: 'Onboarding completed successfully!',
-        user: {
-          onboarding: {
-            status: 'completed',
-            completedAt: new Date(),
-          },
+        onboarding: {
+          status: 'completed',
+          completedAt: new Date(),
         },
-        dashboardRoute: `/dashboard`,
+        accountType,
+        primaryRole: accountType === 'freelancer' ? primaryRole : null,
       });
     } catch (err) {
       console.error('[Complete Onboarding Error]', err);
 
-      // Return validation errors clearly
       if (err.name === 'ValidationError') {
         const errors = Object.keys(err.errors).map((key) => ({
           field: key,
           message: err.errors[key].message,
         }));
-
-        return res.status(400).json({
-          success: false,
-          message: 'Validation failed.',
-          errors,
-        });
+        return res.status(400).json({ success: false, message: 'Validation failed.', errors });
       }
 
       return res.status(500).json({

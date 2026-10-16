@@ -209,10 +209,10 @@ export default function SignUpPage() {
         throw new Error(data.message || 'Registration failed.')
       }
 
-      addToast('success', 'Account Created! 🎉', `Welcome to CollaBro, ${data.user.name}!`, 3000)
+      addToast('success', 'Account Created! 🎉', `Welcome to CollaBro, ${data.user.name}! Let's set up your profile.`, 3000)
 
-      // Short delay for toast visibility, then redirect
-      setTimeout(() => navigate('/dashboard'), 1200)
+      // New users always need onboarding
+      setTimeout(() => navigate('/onboarding'), 1200)
     } catch (err) {
       const message = err.message || 'Something went wrong. Please try again.'
 
@@ -253,8 +253,25 @@ export default function SignUpPage() {
         throw new Error(data.message || 'Google authentication failed.')
       }
 
-      addToast('success', 'Google sign-up successful! 🎉', `Welcome to CollaBro, ${data.user.name}!`, 3000)
-      setTimeout(() => navigate('/dashboard'), 1200)
+      // Check onboarding status
+      const statusRes = await fetch('/api/onboarding/status', {
+        credentials: 'include',
+      })
+
+      if (statusRes.ok) {
+        const statusData = await statusRes.json()
+        if (statusData.onboarding?.status === 'completed') {
+          addToast('success', 'Google sign-in successful! 🎉', `Welcome back, ${data.user.name}!`, 3000)
+          setTimeout(() => navigate('/dashboard'), 1200)
+        } else {
+          addToast('success', 'Google sign-up successful! Let\'s set up your profile 🚀', `Welcome to CollaBro, ${data.user.name}!`, 3000)
+          setTimeout(() => navigate('/onboarding'), 1200)
+        }
+      } else {
+        // If status check fails, default to onboarding for safety (likely new user)
+        addToast('success', 'Google sign-up successful! 🎉', `Welcome to CollaBro, ${data.user.name}!`, 3000)
+        setTimeout(() => navigate('/onboarding'), 1200)
+      }
     } catch (err) {
       const message = err.message || 'Google authentication failed. Please try again.'
       setGlobalError(message)

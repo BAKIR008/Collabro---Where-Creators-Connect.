@@ -1,0 +1,140 @@
+/**
+ * ProgressBar Styles — Premium redesign
+ * No emoji checkmarks; uses CSS content for the check mark character
+ */
+
+.progress-bar-wrapper {
+  margin-bottom: 48px;
+}
+
+/* Step indicators row */
+.progress-steps {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  position: relative;
+}
+
+/* Connector line between steps */
+.progress-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 19px;
+  left: calc(50% + 20px);
+  right: calc(-50% + 20px);
+  height: 2px;
+  background-color: var(--border-light);
+  transition: background-color 0.3s ease;
+  z-index: 0;
+}
+
+.progress-step.completed:not(:last-child)::after {
+  background-color: var(--accent-yellow);
+}
+
+/* Step circle */
+.step-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border-light);
+  background-color: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: all 0.25s ease;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.progress-step.completed .step-circle {
+  background-color: var(--accent-yellow);
+  border-color: var(--accent-yellow);
+  color: var(--text-primary);
+}
+
+.progress-step.active .step-circle {
+  background-color: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--bg-secondary);
+  box-shadow: var(--ob-shadow-sm);
+}
+
+/* Step label */
+.step-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 72px;
+  line-height: 1.3;
+}
+
+.progress-step.active .step-label {
+  color: var(--text-primary);
+}
+
+.progress-step.completed .step-label {
+  color: var(--text-secondary);
+}
+
+/* Progress bar track */
+.progress-bar-track {
+  height: 4px;
+  background-color: var(--border-light);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--text-primary);
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Progress text */
+.progress-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .step-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8125rem;
+  }
+  .step-label {
+    display: none;
+  }
+  .progress-step:not(:last-child)::after {
+    top: 16px;
+  }
+  .progress-bar-wrapper {
+    margin-bottom: 32px;
+  }
+}

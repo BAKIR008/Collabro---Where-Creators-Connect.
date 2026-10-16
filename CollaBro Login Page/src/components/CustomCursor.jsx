@@ -1,43 +1,23 @@
-/**
- * CollaBro — Custom Cursor
- * Matches the landing page cursor behavior exactly
- */
-
 import { useEffect, useRef } from 'react'
 
 export default function CustomCursor() {
-  const dotRef = useRef()
-  const ringRef = useRef()
+  const dotRef = useRef(null)
+  const ringRef = useRef(null)
 
   useEffect(() => {
-    let rafId
-    let mouseX = -100, mouseY = -100
-    let ringX = -100, ringY = -100
+    if (!window.matchMedia('(pointer: fine) and (prefers-reduced-motion: no-preference)').matches) return undefined
 
-    const onMove = (e) => {
-      mouseX = e.clientX
-      mouseY = e.clientY
+    let animationFrame
+    let mouseX = -100
+    let mouseY = -100
+    let ringX = -100
+    let ringY = -100
+    const boundElements = new Set()
+
+    const onMove = (event) => {
+      mouseX = event.clientX
+      mouseY = event.clientY
     }
-
-    const animate = () => {
-      // Dot follows mouse instantly
-      if (dotRef.current) {
-        dotRef.current.style.left = mouseX + 'px'
-        dotRef.current.style.top = mouseY + 'px'
-      }
-
-      // Ring lags behind with lerp
-      ringX += (mouseX - ringX) * 0.12
-      ringY += (mouseY - ringY) * 0.12
-      if (ringRef.current) {
-        ringRef.current.style.left = ringX + 'px'
-        ringRef.current.style.top = ringY + 'px'
-      }
-
-      rafId = requestAnimationFrame(animate)
-    }
-
-    // Hover effect on interactive elements
     const onEnter = () => {
       dotRef.current?.classList.add('hovered')
       ringRef.current?.classList.add('hovered')
@@ -46,25 +26,42 @@ export default function CustomCursor() {
       dotRef.current?.classList.remove('hovered')
       ringRef.current?.classList.remove('hovered')
     }
-
-    const addHoverListeners = () => {
-      document.querySelectorAll('a, button, input, label, [role="button"]').forEach((el) => {
-        el.addEventListener('mouseenter', onEnter)
-        el.addEventListener('mouseleave', onLeave)
+    const bindInteractiveElements = () => {
+      document.querySelectorAll('a, button, input, label, textarea, select, [role="button"]').forEach((element) => {
+        if (boundElements.has(element)) return
+        boundElements.add(element)
+        element.addEventListener('mouseenter', onEnter)
+        element.addEventListener('mouseleave', onLeave)
       })
+    }
+    const animate = () => {
+      if (dotRef.current) {
+        dotRef.current.style.left = `${mouseX}px`
+        dotRef.current.style.top = `${mouseY}px`
+      }
+      ringX += (mouseX - ringX) * 0.12
+      ringY += (mouseY - ringY) * 0.12
+      if (ringRef.current) {
+        ringRef.current.style.left = `${ringX}px`
+        ringRef.current.style.top = `${ringY}px`
+      }
+      animationFrame = requestAnimationFrame(animate)
     }
 
     window.addEventListener('mousemove', onMove)
+    bindInteractiveElements()
+    const observer = new MutationObserver(bindInteractiveElements)
+    observer.observe(document.body, { childList: true, subtree: true })
     animate()
-    addHoverListeners()
-
-    // Re-scan for new interactive elements periodically
-    const interval = setInterval(addHoverListeners, 2000)
 
     return () => {
       window.removeEventListener('mousemove', onMove)
-      cancelAnimationFrame(rafId)
-      clearInterval(interval)
+      observer.disconnect()
+      cancelAnimationFrame(animationFrame)
+      boundElements.forEach((element) => {
+        element.removeEventListener('mouseenter', onEnter)
+        element.removeEventListener('mouseleave', onLeave)
+      })
     }
   }, [])
 
