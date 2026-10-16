@@ -447,7 +447,6 @@ function PhotographerDashboard() {
             <button className="photo-nav-item" onClick={openMyProjects}><Icon name="projects" /> My Projects</button>
             <button className="photo-nav-item" onClick={openMessages}><Icon name="message" /> Messages <span className="photo-nav-count">{messages.length || ''}</span></button>
             <button className="photo-nav-item" onClick={() => { setNotificationsOpen(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }}><Icon name="bell" /> Notifications</button>
-            <button className="photo-nav-item" onClick={() => openSection('creators')}><Icon name="community" /> Community</button>
           </nav>
           <div className="photo-sidebar-note">
             <div className="photo-sticker" aria-hidden="true"><span /><i /></div>
@@ -466,9 +465,6 @@ function PhotographerDashboard() {
               <div className="photo-eyebrow"><span /> HEY {firstName.toUpperCase()}, YOUR PHOTOGRAPHY STUDIO</div>
               <h1>SHOOT.<br /><mark>CONNECT.</mark><br /><i>CREATE</i> STORIES.</h1>
               <p>Find your next muse, build a dream team, and bring the ideas in your camera roll to life.</p>
-              <button className="photo-button photo-button-yellow" onClick={openProjectForm}>
-                <Icon name="plus" size={17} /> START A PROJECT <Icon name="arrow" size={16} />
-              </button>
               <div className="photo-hero-badges" aria-label="Project types">
                 <span className="photo-badge badge-purple"><Icon name="camera" size={14} /> Editorial</span>
                 <span className="photo-badge badge-yellow"><Icon name="sparkle" size={14} /> Portraits</span>
@@ -492,7 +488,7 @@ function PhotographerDashboard() {
 
           <div className="photo-section-heading" id="projects">
             <div><span className="photo-eyebrow">{showMyProjects ? 'YOUR PROJECT WORKSPACE' : 'YOUR LATEST WORK'}</span><h2>{showMyProjects ? 'My projects' : 'Featured shoots'}</h2></div>
-            <button className="photo-text-link" onClick={showMyProjects ? openProjectForm : openMyProjects}>{showMyProjects ? 'Create a project' : 'View my projects'} <Icon name="arrow" size={15} /></button>
+            {!showMyProjects && <button className="photo-text-link" onClick={openMyProjects}>View my projects <Icon name="arrow" size={15} /></button>}
           </div>
           <section className="photo-project-grid" aria-label="Featured photography projects">
             {projectsLoading && showMyProjects ? <div className="photo-empty-state">Loading your projects…</div> : null}
@@ -554,7 +550,6 @@ function PhotographerDashboard() {
         <aside className="photo-right-rail">
           <section className="photo-quick-actions">
             <div className="photo-rail-title"><h2>QUICK ACTIONS</h2><Icon name="sparkle" size={18} /></div>
-            <button className="photo-action-primary" onClick={openProjectForm}><Icon name="plus" /> Create a project <Icon name="arrow" size={15} /></button>
             <button onClick={() => uploadInput.current?.click()}><Icon name="upload" /> Upload a shoot <Icon name="arrow" size={15} /></button>
             <button onClick={() => openSection('creators')}><Icon name="community" /> Find collaborators <Icon name="arrow" size={15} /></button>
             <button onClick={() => { setShowMyProjects(false); setQuery('Open'); openSection('projects') }}><Icon name="sparkle" /> Explore open shoots <Icon name="arrow" size={15} /></button>
@@ -580,19 +575,9 @@ function PhotographerDashboard() {
               <div className="photo-studio-add"><input value={studioInput} onChange={(event) => setStudioInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addStudioItem() } }} placeholder="e.g. Wide establishing shot" aria-label="New shot" /><button onClick={addStudioItem}>Add</button></div>
             </div> : <div className="photo-studio-editable"><textarea value={studioNotes} onChange={(event) => setStudioNotes(event.target.value)} placeholder="Add a location, lighting plan, or creative note…" aria-label="Photo studio notes" /><div className="photo-studio-add"><input value={studioInput} onChange={(event) => setStudioInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addStudioItem() } }} placeholder="Add a quick note" aria-label="Quick note" /><button onClick={addStudioItem}>Add</button></div></div>}
             <div className="photo-studio-tip"><Icon name="sparkle" size={16} /><div><b>A little inspiration</b><p>Try shooting through something — a window, a veil, a rainy windshield.</p></div><Icon name="arrow" size={14} /></div>
-            <div className="photo-studio-footer"><button onClick={() => addToast('success', 'Studio draft saved', 'Your moodboard, shot list, and notes are saved in this browser.')}>Save draft</button><button onClick={async () => { const url = new URL(`/projects/${currentStudioProject?.id || currentStudioProject?._id}`, window.location.origin).toString(); try { await navigator.clipboard.writeText(url); addToast('success', 'Project link copied', 'Share this link with your team.') } catch { addToast('error', 'Could not copy link', 'Please copy the project URL from your browser address bar.') } }}>Invite team <Icon name="community" size={14} /></button></div>
+            <div className="photo-studio-footer"><button onClick={() => addToast('success', 'Studio draft saved', 'Your moodboard, shot list, and notes are saved in this browser.')}>Save draft</button></div>
           </section>
 
-          <section className="photo-weekly-card">
-            <div className="photo-weekly-icon"><Icon name="camera" size={19} /></div>
-            <span className="photo-eyebrow">SAMPLE ANALYTICS · PREVIEW DATA</span>
-            <strong>6,240</strong>
-            <p>illustrative reach sample — live analytics are not connected</p>
-            <div className="photo-weekly-chart" aria-label="Views rising through the week">
-              {[24, 39, 31, 52, 43, 67, 56, 84, 71, 100, 78, 92].map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}
-            </div>
-            <span className="photo-weekly-growth">Sample trend · not account data</span>
-          </section>
         </aside>
       </div>
 
