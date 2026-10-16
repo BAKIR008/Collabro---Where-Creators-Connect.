@@ -91,6 +91,43 @@ const creators = [
 
 const photoUrl = (id, width = 640) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`
 
+const SETTINGS_STORAGE_KEY = 'collabro-script-dashboard-settings'
+const defaultSettings = {
+  name: '',
+  email: '',
+  bio: '',
+  role: 'Screenwriter',
+  visibility: 'Public',
+  theme: 'cream',
+  notifications: {
+    collaborations: true,
+    scriptActivity: true,
+    opportunities: false,
+  },
+}
+
+function loadSettings() {
+  try {
+    const stored = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
+    if (!stored) return defaultSettings
+    const parsed = JSON.parse(stored)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('Saved settings have an invalid format.')
+    }
+    return {
+      ...defaultSettings,
+      ...parsed,
+      notifications: {
+        ...defaultSettings.notifications,
+        ...(parsed.notifications || {}),
+      },
+    }
+  } catch (error) {
+    console.error('Unable to load saved dashboard settings.', error)
+    return defaultSettings
+  }
+}
+
 function Icon({ name, size = 18 }) {
   const common = {
     width: size,
@@ -123,9 +160,122 @@ function Icon({ name, size = 18 }) {
     heart: <><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" /></>,
     document: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M8 13h8M8 17h8" /></>,
     film: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4" /></>,
+    settings: <><circle cx="12" cy="12" r="3" /><path d="m19.4 15 .1.1a1.7 1.7 0 1 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.3a1.7 1.7 0 1 1-3.4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a1.7 1.7 0 1 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9h-.3a1.7 1.7 0 1 1 0-3.4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a1.7 1.7 0 1 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2v-.3a1.7 1.7 0 1 1 3.4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a1.7 1.7 0 1 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.3a1.7 1.7 0 1 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z" /></>,
   }
 
   return <svg {...common}>{paths[name] || paths.sparkle}</svg>
+}
+
+function SettingsPage({ settings, onChange, onSave, onBack, saveMessage, saveError, profileName, profileEmail }) {
+  const updateNotification = (key, value) => {
+    onChange({
+      ...settings,
+      notifications: { ...settings.notifications, [key]: value },
+    })
+  }
+
+  return (
+    <main className="script-settings-page">
+      <button className="script-settings-back" type="button" onClick={onBack}>
+        <Icon name="arrow" size={15} /> Back to dashboard
+      </button>
+      <div className="script-settings-heading">
+        <span className="script-eyebrow"><span /> YOUR WORKSPACE</span>
+        <h1>SETTINGS<span>.</span></h1>
+        <p>Make Storyroom feel like your space.</p>
+      </div>
+
+      <form className="script-settings-form" onSubmit={onSave}>
+        <section className="script-settings-card" id="account-settings">
+          <div className="script-settings-card-heading">
+            <span className="script-settings-icon settings-purple"><Icon name="community" size={18} /></span>
+            <div><h2>Account settings</h2><p>Your name and the details people see on your profile.</p></div>
+          </div>
+          <div className="script-settings-fields">
+            <label className="script-settings-field">
+              <span>NAME</span>
+              <input autoComplete="name" value={settings.name || profileName} onChange={(event) => onChange({ ...settings, name: event.target.value })} required />
+            </label>
+            <label className="script-settings-field">
+              <span>EMAIL</span>
+              <input autoComplete="email" type="email" value={settings.email || profileEmail} onChange={(event) => onChange({ ...settings, email: event.target.value })} placeholder="you@example.com" />
+            </label>
+            <label className="script-settings-field field-full">
+              <span>PROFILE INFORMATION</span>
+              <textarea value={settings.bio} onChange={(event) => onChange({ ...settings, bio: event.target.value })} placeholder="Tell collaborators a little about you and the stories you love to tell." rows="3" />
+            </label>
+          </div>
+        </section>
+
+        <section className="script-settings-card">
+          <div className="script-settings-card-heading">
+            <span className="script-settings-icon settings-yellow"><Icon name="pen" size={18} /></span>
+            <div><h2>Profile preferences</h2><p>Set how you work and who can find you.</p></div>
+          </div>
+          <div className="script-settings-fields">
+            <label className="script-settings-field">
+              <span>CREATOR ROLE</span>
+              <select value={settings.role} onChange={(event) => onChange({ ...settings, role: event.target.value })}>
+                <option>Screenwriter</option>
+                <option>Showrunner</option>
+                <option>Writer-director</option>
+                <option>Playwright</option>
+                <option>Creative producer</option>
+              </select>
+            </label>
+            <label className="script-settings-field">
+              <span>PROFILE VISIBILITY</span>
+              <select value={settings.visibility} onChange={(event) => onChange({ ...settings, visibility: event.target.value })}>
+                <option>Public</option>
+                <option>Collaborators only</option>
+                <option>Private</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section className="script-settings-card">
+          <div className="script-settings-card-heading">
+            <span className="script-settings-icon settings-cyan"><Icon name="sparkle" size={18} /></span>
+            <div><h2>Appearance</h2><p>Choose the look you want to write in.</p></div>
+          </div>
+          <label className="script-settings-field">
+            <span>THEME</span>
+            <select value={settings.theme} onChange={(event) => onChange({ ...settings, theme: event.target.value })}>
+              <option value="cream">Collabro cream · Grid (default)</option>
+              <option value="cream-plain">Collabro cream · Plain</option>
+            </select>
+          </label>
+        </section>
+
+        <section className="script-settings-card">
+          <div className="script-settings-card-heading">
+            <span className="script-settings-icon settings-pink"><Icon name="bell" size={18} /></span>
+            <div><h2>Notifications</h2><p>Choose which updates you’d like to receive.</p></div>
+          </div>
+          <div className="script-notification-options">
+            <label className="script-toggle-row">
+              <span><strong>Collaboration requests</strong><small>When writers invite you to a project.</small></span>
+              <input type="checkbox" checked={settings.notifications.collaborations} onChange={(event) => updateNotification('collaborations', event.target.checked)} />
+            </label>
+            <label className="script-toggle-row">
+              <span><strong>Script activity</strong><small>Notes, comments, and changes to your scripts.</small></span>
+              <input type="checkbox" checked={settings.notifications.scriptActivity} onChange={(event) => updateNotification('scriptActivity', event.target.checked)} />
+            </label>
+            <label className="script-toggle-row">
+              <span><strong>Opportunities</strong><small>Contests, grants, and submission calls.</small></span>
+              <input type="checkbox" checked={settings.notifications.opportunities} onChange={(event) => updateNotification('opportunities', event.target.checked)} />
+            </label>
+          </div>
+        </section>
+
+        <div className="script-settings-save-row" aria-live="polite">
+          <span className={saveError ? 'settings-error' : 'settings-message'}>{saveError || saveMessage}</span>
+          <button className="script-button script-button-yellow" type="submit"><Icon name="check" size={15} /> SAVE SETTINGS</button>
+        </div>
+      </form>
+    </main>
+  )
 }
 
 export default function App() {
@@ -141,6 +291,12 @@ export default function App() {
   const [readerModalScript, setReaderModalScript] = useState(null)
   const [favoriteScriptTitles, setFavoriteScriptTitles] = useState([])
   const [favoriteCreators, setFavoriteCreators] = useState([])
+  const [settings, setSettings] = useState(loadSettings)
+  const [settingsMessage, setSettingsMessage] = useState('')
+  const [settingsError, setSettingsError] = useState('')
+  const [currentPage, setCurrentPage] = useState(() =>
+    window.location.pathname.replace(/\/+$/, '') === '/settings' ? 'settings' : 'dashboard',
+  )
 
   // New script form fields
   const [projectName, setProjectName] = useState('')
@@ -153,8 +309,19 @@ export default function App() {
 
   useEffect(() => {
     const previousTitle = document.title
-    document.title = 'Storyroom — Script Writing Dashboard — CollaBro'
+    document.title = currentPage === 'settings'
+      ? 'Settings — Storyroom — CollaBro'
+      : 'Storyroom — Script Writing Dashboard — CollaBro'
     return () => { document.title = previousTitle }
+  }, [currentPage])
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPage(window.location.pathname.replace(/\/+$/, '') === '/settings' ? 'settings' : 'dashboard')
+      setProfileOpen(false)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   useEffect(() => {
@@ -194,8 +361,44 @@ export default function App() {
 
   const firstName = user?.name?.trim().split(/\s+/)[0] || 'Zinal'
   const profileName = user?.name || 'Zinal Agrawal'
+  const profileEmail = user?.email || ''
 
   const activeStudioProject = projects[selectedScriptIndex] || projects[0]
+
+  const navigateTo = (page) => {
+    const pathname = page === 'settings' ? '/settings' : '/'
+    if (window.location.pathname !== pathname) window.history.pushState({}, '', pathname)
+    setCurrentPage(page)
+    setProfileOpen(false)
+    setSettingsMessage('')
+    setSettingsError('')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const saveSettings = (event) => {
+    event.preventDefault()
+    const nextSettings = {
+      ...settings,
+      name: settings.name.trim() || profileName,
+      email: settings.email.trim() || profileEmail,
+      bio: settings.bio.trim(),
+    }
+    try {
+      window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(nextSettings))
+      setSettings(nextSettings)
+      setUser((current) => ({
+        ...current,
+        name: nextSettings.name || profileName,
+        email: nextSettings.email,
+      }))
+      setSettingsError('')
+      setSettingsMessage('Settings saved.')
+    } catch (error) {
+      console.error('Unable to save dashboard settings.', error)
+      setSettingsMessage('')
+      setSettingsError('Settings could not be saved. Please try again.')
+    }
+  }
 
   const createScript = (event) => {
     event.preventDefault()
@@ -274,13 +477,13 @@ export default function App() {
   }
 
   return (
-    <div className="script-dashboard" id="dashboard">
+    <div className="script-dashboard" id="dashboard" data-theme={settings.theme}>
       <CustomCursor />
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       {/* TOPBAR */}
       <header className="script-topbar">
-        <a className="script-brand" href="#dashboard" aria-label="CollaBro home">
+        <a className="script-brand" href="/" aria-label="CollaBro home" onClick={(event) => { event.preventDefault(); navigateTo('dashboard') }}>
           <span className="script-brand-name">COLLAB<span>R</span>O</span>
           <span className="script-brand-tag">THE CREATORS HUB</span>
         </a>
@@ -333,8 +536,9 @@ export default function App() {
             {profileOpen && (
               <div className="script-popover script-profile-menu">
                 <strong>{profileName}</strong>
-                <span>Screenwriter &amp; Showrunner · Creator profile</span>
-                <button onClick={() => addToast('info', 'Profile settings', 'Profile editing is coming soon.')}>Edit profile</button>
+                <span>{settings.role} · Creator profile</span>
+                <button onClick={() => navigateTo('settings')}>Edit profile</button>
+                <button onClick={() => navigateTo('settings')}>Settings</button>
                 <button onClick={logout}>Sign out</button>
               </div>
             )}
@@ -342,7 +546,19 @@ export default function App() {
         </div>
       </header>
 
-      {/* 3-COLUMN MAIN LAYOUT */}
+      {currentPage === 'settings' ? (
+        <SettingsPage
+          settings={settings}
+          onChange={(nextSettings) => { setSettings(nextSettings); setSettingsMessage(''); setSettingsError('') }}
+          onSave={saveSettings}
+          onBack={() => navigateTo('dashboard')}
+          saveMessage={settingsMessage}
+          saveError={settingsError}
+          profileName={profileName}
+          profileEmail={profileEmail}
+        />
+      ) : (
+      /* 3-COLUMN MAIN LAYOUT */
       <div className="script-layout">
         {/* LEFT SIDEBAR */}
         <aside className="script-sidebar">
@@ -647,17 +863,15 @@ export default function App() {
               <button onClick={() => addToast('success', 'Draft saved', `Draft notes for "${activeStudioProject.title}" saved.`)}>
                 Save draft
               </button>
-              <button onClick={() => addToast('success', 'Invite link copied', `Writers room invite link for "${activeStudioProject.title}" copied to clipboard.`)}>
-                Invite team <Icon name="community" size={14} />
-              </button>
             </div>
           </section>
 
         </aside>
       </div>
+      )}
 
       {/* START A SCRIPT MODAL */}
-      {projectModalOpen && (
+      {currentPage === 'dashboard' && projectModalOpen && (
         <div
           className="script-modal-backdrop"
           role="presentation"
