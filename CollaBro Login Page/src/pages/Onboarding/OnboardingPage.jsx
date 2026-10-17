@@ -7,12 +7,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOnboarding } from '../../hooks/useOnboarding.js';
 import {
-  ONBOARDING_CONFIG,
+  getConfig,
   getStepIds,
   getStepIndex,
   getNextStepId,
   getPreviousStepId,
-  calculateProgress,
 } from '../../config/onboardingConfig.js';
 import {
   OnboardingLayout,
@@ -20,14 +19,15 @@ import {
   NavigationButtons,
 } from './components';
 import {
-  CreatorIdentityStep,
-  SkillsExperienceStep,
-  GoalsStep,
-  CollaborationStep,
-  WorkPreferencesStep,
+  AccountTypeStep,
+  AboutYouStep,
+  ExpertiseStep,
+  ClientNeedsStep,
+  GoalsPreferencesStep,
   ReviewStep,
 } from './steps';
 import './OnboardingPage.css';
+import CustomCursor from '../../components/CustomCursor.jsx';
 
 export const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -40,15 +40,28 @@ export const OnboardingPage = () => {
     isCompleted,
   } = useOnboarding();
 
-  const stepIds = getStepIds();
-  const [currentStepId, setCurrentStepId] = useState(stepIds[0]);
   const [formData, setFormData] = useState({});
+  const accountType = formData.accountType || 'freelancer'; // Default for config
+  const stepIds = getStepIds(accountType);
+  
+  // Try to recover current step from DB or start at first step
+  const [currentStepId, setCurrentStepId] = useState('account-type');
   const [validationErrors, setValidationErrors] = useState({});
+  const [toastMessage, setToastMessage] = useState(null);
 
-  const currentStepIndex = getStepIndex(currentStepId);
-  const currentStep = ONBOARDING_CONFIG.steps.find(
+  const currentStepIndex = getStepIndex(currentStepId, accountType);
+  const currentConfig = getConfig(accountType);
+  const currentStep = currentConfig.steps.find(
     (s) => s.id === currentStepId
   );
+  
+  // If currentStepId is invalid for this accountType, reset to first step
+  useEffect(() => {
+    if (!currentStep && !loading) {
+      setCurrentStepId(stepIds[0]);
+    }
+  }, [currentStep, loading, stepIds]);
+
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === stepIds.length - 1;
 
@@ -67,16 +80,17 @@ export const OnboardingPage = () => {
   useEffect(() => {
     if (responses && Object.keys(responses).length > 0) {
       setFormData(responses);
+      // Can restore step from responses if needed, leaving as is
     }
   }, [responses]);
 
+  const showToast = (message) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   /**
    * Handle step data change.
-   *
-   * Steps emit partial updates like { collaborationPreferences: { workMode: 'hybrid' } }.
-   * A simple shallow spread would REPLACE the entire collaborationPreferences object,
-   * wiping any keys (creatorRoles, projectTypes, duration) set by earlier sub-fields
-   * in the same step. We deep-merge one level down so nested updates are additive.
    */
   const handleStepChange = useCallback((stepData) => {
     setFormData((prev) => {
@@ -84,14 +98,15 @@ export const OnboardingPage = () => {
       for (const key of Object.keys(stepData)) {
         const incoming = stepData[key];
         const existing = prev[key];
-        // Deep-merge one level for plain objects (not arrays, not null)
         if (
           incoming !== null &&
           typeof incoming === 'object' &&
           !Array.isArray(incoming) &&
           existing !== null &&
           typeof existing === 'object' &&
-          !Array.isArray(existing)
+          !Array.isArray(existing) &&
+          !(incoming instanceof File) && // prevent deep merging file objects
+          !(existing instanceof File)
         ) {
           next[key] = { ...existing, ...incoming };
         } else {
@@ -102,28 +117,41 @@ export const OnboardingPage = () => {
     });
   }, []);
 
-
   /**
    * Validate current step
    */
   const validateCurrentStep = () => {
     const errors = {};
 
-    // Validate based on step
     switch (currentStepId) {
-      case 'creator-identity':
+      case 'account-type':
+        if (!formData.accountType) {
+          errors.accountType = 'Please select an account type';
+        }
+        break;
+
+      case 'about-you':
+        if (!formData.displayName?.trim()) {
+          errors.displayName = 'Display name is required';
+        }
+        break;
+
+      case 'client-needs':
+        if (!formData.clientNeeds || formData.clientNeeds.length === 0) {
+          errors.clientNeeds = 'Please select at least one need';
+        }
+        if (!formData.collaborationPreferences?.creatorRoles || formData.collaborationPreferences.creatorRoles.length === 0) {
+          errors.creatorRoles = 'Please select at least one creator role';
+        }
+        break;
+
+      case 'expertise':
         if (!formData.roles || formData.roles.length === 0) {
           errors.roles = 'Please select at least one role';
         }
         if (!formData.primaryRole) {
           errors.primaryRole = 'Please select a primary role';
         }
-        if (formData.roles?.includes('other') && !formData.customRole?.trim()) {
-          errors.customRole = 'Please specify your custom role';
-        }
-        break;
-
-      case 'skills-experience':
         if (!formData.experienceLevel) {
           errors.experienceLevel = 'Please select your experience level';
         }
@@ -132,36 +160,25 @@ export const OnboardingPage = () => {
         }
         break;
 
-      case 'goals':
-        if (!formData.goals || formData.goals.length === 0) {
-          errors.goals = 'Please select at least one goal';
+      case 'goals-preferences':
+        if (accountType === 'freelancer') {
+          if (!formData.goals || formData.goals.length === 0) {
+            errors.goals = 'Please select at least one goal';
+          }
+          if (!formData.workMode) {
+            errors.workMode = 'Please select a work mode';
+          }
+          if (!formData.workStyle) {
+            errors.workStyle = 'Please select a work style';
+          }
+        } else {
+          if (!formData.collaborationPreferences?.projectTypes || formData.collaborationPreferences.projectTypes.length === 0) {
+            errors.projectTypes = 'Please select at least one project type';
+          }
+          if (!formData.collaborationPreferences?.duration) {
+            errors.duration = 'Please select an expected duration';
+          }
         }
-        break;
-
-      case 'collaboration':
-        if (
-          !formData.collaborationPreferences?.creatorRoles ||
-          formData.collaborationPreferences.creatorRoles.length === 0
-        ) {
-          errors.creatorRoles =
-            'Please select at least one role to collaborate with';
-        }
-        if (
-          !formData.collaborationPreferences?.projectTypes ||
-          formData.collaborationPreferences.projectTypes.length === 0
-        ) {
-          errors.projectTypes = 'Please select at least one project type';
-        }
-        if (!formData.collaborationPreferences?.duration) {
-          errors.duration = 'Please select a preferred duration';
-        }
-        if (!formData.collaborationPreferences?.workMode) {
-          errors.workMode = 'Please select a work mode';
-        }
-        break;
-
-      case 'work-preferences':
-        // This step is optional - no validation errors
         break;
 
       case 'review':
@@ -177,15 +194,13 @@ export const OnboardingPage = () => {
    * Handle next step
    */
   const handleNext = async () => {
-    // Validate before proceeding
     if (!validateCurrentStep()) {
       return;
     }
 
-    // Save draft before moving to next step
     await saveDraft(formData);
 
-    const nextId = getNextStepId(currentStepId);
+    const nextId = getNextStepId(currentStepId, accountType);
     if (nextId) {
       setCurrentStepId(nextId);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -196,7 +211,7 @@ export const OnboardingPage = () => {
    * Handle back step
    */
   const handleBack = () => {
-    const prevId = getPreviousStepId(currentStepId);
+    const prevId = getPreviousStepId(currentStepId, accountType);
     if (prevId) {
       setCurrentStepId(prevId);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -209,10 +224,9 @@ export const OnboardingPage = () => {
   const handleSaveDraft = async () => {
     const result = await saveDraft(formData);
     if (result.success) {
-      // Show success feedback (could use toast notification)
-      alert('Draft saved successfully!');
+      showToast('Draft saved successfully!');
     } else {
-      alert(`Failed to save draft: ${result.message}`);
+      showToast(`Failed to save draft: ${result.message}`);
     }
   };
 
@@ -220,17 +234,15 @@ export const OnboardingPage = () => {
    * Handle complete onboarding
    */
   const handleComplete = async () => {
-    // Final validation
     if (!validateCurrentStep()) {
       return;
     }
 
     const result = await completeOnboarding(formData);
     if (result.success) {
-      // Navigate to dashboard
       navigate('/dashboard');
     } else {
-      alert(`Failed to complete onboarding: ${result.message}`);
+      setValidationErrors({ server: result.message || 'Failed to complete onboarding' });
     }
   };
 
@@ -239,28 +251,20 @@ export const OnboardingPage = () => {
    */
   const renderStep = () => {
     switch (currentStepId) {
-      case 'creator-identity':
-        return (
-          <CreatorIdentityStep data={formData} onChange={handleStepChange} />
-        );
+      case 'account-type':
+        return <AccountTypeStep data={formData} onChange={handleStepChange} />;
 
-      case 'skills-experience':
-        return (
-          <SkillsExperienceStep data={formData} onChange={handleStepChange} />
-        );
+      case 'about-you':
+        return <AboutYouStep data={formData} onChange={handleStepChange} />;
 
-      case 'goals':
-        return <GoalsStep data={formData} onChange={handleStepChange} />;
+      case 'client-needs':
+        return <ClientNeedsStep data={formData} onChange={handleStepChange} />;
 
-      case 'collaboration':
-        return (
-          <CollaborationStep data={formData} onChange={handleStepChange} />
-        );
+      case 'expertise':
+        return <ExpertiseStep data={formData} onChange={handleStepChange} />;
 
-      case 'work-preferences':
-        return (
-          <WorkPreferencesStep data={formData} onChange={handleStepChange} />
-        );
+      case 'goals-preferences':
+        return <GoalsPreferencesStep data={formData} onChange={handleStepChange} />;
 
       case 'review':
         return <ReviewStep data={formData} />;
@@ -272,32 +276,45 @@ export const OnboardingPage = () => {
 
   if (loading) {
     return (
-      <OnboardingLayout>
-        <div className="onboarding-loading">
-          <p>Loading...</p>
-        </div>
-      </OnboardingLayout>
+      <>
+        <CustomCursor />
+        <OnboardingLayout>
+          <div className="onboarding-loading">
+            <p>Loading...</p>
+          </div>
+        </OnboardingLayout>
+      </>
     );
   }
 
   return (
-    <OnboardingLayout>
+    <>
+      <CustomCursor />
+      <OnboardingLayout>
       <div className="onboarding-page">
-        {/* Progress Bar */}
-        <ProgressBar
-          currentStep={currentStepIndex}
-          totalSteps={stepIds.length}
-          stepLabels={ONBOARDING_CONFIG.steps.map((s) => s.title)}
-        />
+        {toastMessage && (
+          <div style={{ position: 'fixed', top: '20px', right: '20px', background: '#a855f7', color: 'white', padding: '1rem', borderRadius: '8px', zIndex: 1000 }}>
+            {toastMessage}
+          </div>
+        )}
+        
+        {/* Progress Bar (hide on account-type step) */}
+        {currentStepId !== 'account-type' && (
+          <ProgressBar
+            currentStep={currentStepIndex - 1} // since account-type is index 0
+            totalSteps={stepIds.length - 1}
+            stepLabels={currentConfig.steps.slice(1).map((s) => s.title)}
+          />
+        )}
 
         {/* Current Step */}
         <div className="step-content">{renderStep()}</div>
 
         {/* Validation Errors */}
         {Object.keys(validationErrors).length > 0 && (
-          <div className="validation-errors">
+          <div className="validation-errors" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255, 68, 68, 0.1)', borderLeft: '4px solid #ff4444' }}>
             {Object.values(validationErrors).map((error, index) => (
-              <p key={index} className="error-message">
+              <p key={index} className="error-message" style={{ color: '#ff4444', margin: '0.25rem 0' }}>
                 ⚠️ {error}
               </p>
             ))}
@@ -312,12 +329,13 @@ export const OnboardingPage = () => {
           showBack={!isFirstStep}
           showNext={true}
           showSaveDraft={!isLastStep}
-          nextLabel={isLastStep ? 'Complete' : 'Next'}
+          nextLabel={isLastStep ? 'Complete Profile' : 'Continue'}
           nextDisabled={false}
           isLastStep={isLastStep}
           isSaving={saving}
         />
       </div>
     </OnboardingLayout>
+    </>
   );
 };
