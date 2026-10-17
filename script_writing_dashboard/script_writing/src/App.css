@@ -129,6 +129,7 @@
 .script-popover em { font-style: normal; }
 .script-popover > button { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 12px; padding: 9px 0 0; border: 0; border-top: 1px solid #e3ddcf; background: none; text-align: left; font-weight: 700; }
 .script-profile-menu { display: grid; gap: 8px; width: 210px; }
+.script-profile-menu { max-width: min(210px, calc(100vw - 24px)); }
 .script-profile-menu strong { font-size: 13px; }
 .script-profile-menu > span { margin-top: -6px; color: #6c6860; font-size: 10px; }
 .script-profile-menu > button { width: 100%; padding: 7px 0; border: 0; border-top: 1px solid #e3ddcf; background: transparent; text-align: left; font-size: 11px; }
@@ -506,7 +507,6 @@
 .script-studio-tip > svg:last-child { flex-shrink: 0; margin-top: 2px; }
 .script-studio-footer { gap: 6px; margin-top: 9px; }
 .script-studio-footer button { min-height: 29px; display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 4px; border: 1px solid #a8a49b; border-radius: 4px; background: transparent; color: white; font: 700 7px var(--font-mono) !important; text-transform: uppercase; }
-.script-studio-footer button:last-child { border-color: var(--sd-yellow); background: var(--sd-yellow); color: #171713; }
 
 /* =====================================================
    MODAL
@@ -601,4 +601,102 @@
 
 @media (prefers-reduced-motion: reduce) {
   .script-dashboard *, .script-dashboard *::before, .script-dashboard *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/* Settings */
+.script-settings-page {
+  width: min(calc(100% - 48px), 880px);
+  margin: 0 auto;
+  padding: 28px 0 42px;
+}
+.script-settings-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px;
+  border: 1px solid var(--sd-ink);
+  border-radius: 4px;
+  background: #fffdf6;
+  box-shadow: 2px 2px 0 var(--sd-ink);
+  font: 700 8px var(--font-mono) !important;
+  text-transform: uppercase;
+}
+.script-settings-back svg { transform: rotate(180deg); }
+.script-settings-heading { margin: 30px 0 22px; }
+.script-settings-heading .script-eyebrow { font-size: 8px; }
+.script-settings-heading h1 { margin: 8px 0 2px; font: 52px/.9 var(--font-display); }
+.script-settings-heading h1 span { color: var(--sd-purple); }
+.script-settings-heading > p { margin: 8px 0 0; color: #625d54; font-size: 11px; }
+.script-settings-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+.script-settings-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--sd-ink);
+  border-radius: 6px;
+  background: rgba(255, 253, 246, .88);
+  box-shadow: 2px 2px 0 rgba(23, 23, 19, .14);
+}
+.script-settings-card:first-child { grid-column: 1 / -1; }
+.script-settings-card-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+.script-settings-icon { width: 31px; height: 31px; display: grid; flex: 0 0 auto; place-items: center; border: 1px solid var(--sd-ink); border-radius: 4px; }
+.settings-purple { background: #d7b5fb; }
+.settings-yellow { background: #ffe889; }
+.settings-cyan { background: #a8eaf4; }
+.settings-pink { background: #ffacd2; }
+.script-settings-card-heading h2 { margin: 0; font: 22px/.95 var(--font-display); }
+.script-settings-card-heading p { margin: 4px 0 0; color: #706b62; font-size: 9px; line-height: 1.45; }
+.script-settings-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.script-settings-field { min-width: 0; display: grid; gap: 6px; color: var(--sd-ink); font: 700 8px var(--font-mono); letter-spacing: .06em; }
+.script-settings-field > input,
+.script-settings-field > select,
+.script-settings-field > textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 8px 9px;
+  border: 1px solid #aaa394;
+  border-radius: 4px;
+  background: #fffefa;
+  color: var(--sd-ink);
+  font: 11px var(--font-body);
+  letter-spacing: normal;
+}
+.script-settings-field > textarea { min-height: 72px; resize: vertical; line-height: 1.5; }
+.script-settings-field > input:focus,
+.script-settings-field > select:focus,
+.script-settings-field > textarea:focus { outline: 2px solid var(--sd-yellow); border-color: var(--sd-ink); }
+.script-settings-field > input::placeholder,
+.script-settings-field > textarea::placeholder { color: #898378; }
+.field-full { grid-column: 1 / -1; }
+.script-notification-options { display: grid; }
+.script-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--sd-line); cursor: pointer; }
+.script-toggle-row:first-child { padding-top: 0; border-top: 0; }
+.script-toggle-row > span { display: grid; gap: 3px; }
+.script-toggle-row strong { font-size: 10px; }
+.script-toggle-row small { color: #706b62; font-size: 9px; line-height: 1.4; }
+.script-toggle-row input { width: 16px; height: 16px; flex: 0 0 auto; accent-color: var(--sd-purple); cursor: pointer; }
+.script-settings-save-row { grid-column: 1 / -1; display: flex; align-items: center; justify-content: flex-end; gap: 14px; min-height: 40px; }
+.settings-message,
+.settings-error { margin-right: auto; font-size: 10px; }
+.settings-message { color: #25764f; }
+.settings-error { color: #a82255; }
+
+.script-dashboard[data-theme="cream-plain"],
+.script-dashboard[data-theme="cream-plain"] .script-editor-overlay {
+  background-image: none;
+}
+
+@media (max-width: 640px) {
+  .script-settings-page { width: calc(100% - 28px); padding: 18px 0 30px; }
+  .script-settings-heading { margin: 25px 0 17px; }
+  .script-settings-heading h1 { font-size: 46px; }
+  .script-settings-form { grid-template-columns: 1fr; gap: 10px; }
+  .script-settings-card,
+  .script-settings-card:first-child,
+  .script-settings-save-row { grid-column: 1; }
+  .script-settings-card { padding: 13px; }
+  .script-settings-fields { grid-template-columns: 1fr; gap: 10px; }
+  .field-full { grid-column: auto; }
+  .script-settings-save-row { flex-wrap: wrap; justify-content: flex-start; padding-top: 3px; }
+  .script-settings-save-row .script-button { margin-left: auto; }
 }

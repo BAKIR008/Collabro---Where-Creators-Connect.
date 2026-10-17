@@ -313,16 +313,6 @@
 .photo-studio-tip > svg:last-child { flex-shrink: 0; margin-top: 2px; }
 .photo-studio-footer { gap: 6px; margin-top: 9px; }
 .photo-studio-footer button { min-height: 29px; display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 4px; border: 1px solid #a8a49b; border-radius: 4px; background: transparent; color: white; font: 700 7px var(--font-mono) !important; text-transform: uppercase; }
-.photo-studio-footer button:last-child { border-color: var(--pd-yellow); background: var(--pd-yellow); color: #171713; }
-
-.photo-weekly-card { position: relative; margin-top: 13px; padding: 13px; border: 1px solid rgba(23, 23, 19, .5); border-radius: 7px; background: rgba(255, 253, 246, .65); }
-.photo-weekly-icon { width: 32px; height: 32px; display: grid; place-items: center; float: right; border: 1px solid var(--pd-ink); border-radius: 50%; background: #d5b7fb; }
-.photo-weekly-card > .photo-eyebrow { font-size: 7px; }
-.photo-weekly-card > strong { display: block; margin-top: 8px; font: 29px/.95 var(--font-display); }
-.photo-weekly-card > p { margin: 4px 0 9px; color: #625d54; font-size: 9px; }
-.photo-weekly-chart { height: 29px; display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #cfc8b9; }
-.photo-weekly-chart i { flex: 1; border-radius: 2px 2px 0 0; background: #a879ea; }
-.photo-weekly-growth { display: block; margin-top: 7px; color: #298451; font: 700 8px var(--font-mono); }
 
 .photo-modal-backdrop { position: fixed; inset: 0; z-index: 1001; display: grid; place-items: center; padding: 20px; background: rgba(11, 11, 10, .58); backdrop-filter: blur(4px); }
 .photo-project-modal { width: min(100%, 420px); position: relative; padding: 28px; border: 2px solid var(--pd-ink); border-radius: 9px; background: #fffdf6; box-shadow: 7px 7px 0 var(--pd-ink); }
@@ -357,8 +347,7 @@
   .photo-nav-count, .photo-sidebar-note, .photo-sidebar-footer { display: none; }
   .photo-main { order: 1; padding-inline: 18px; }
   .photo-right-rail { order: 3; display: grid; grid-template-columns: minmax(240px, 1fr) minmax(280px, 1.2fr); align-items: start; gap: 12px; padding: 0 18px 18px; border: 0; }
-  .photo-studio-panel { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
-  .photo-weekly-card { grid-column: 1; margin-top: 0; }
+  .photo-studio-panel { grid-column: 2; grid-row: 1; margin-top: 0; }
   .photo-quick-actions { grid-column: 1; }
   .photo-account { gap: 8px; }
 }
@@ -400,10 +389,9 @@
   .photo-footer { font-size: 7px; }
   .photo-footer span { font-size: 7px; }
   .photo-right-rail { grid-template-columns: 1fr; gap: 10px; padding: 0 12px 15px; }
-  .photo-quick-actions, .photo-studio-panel, .photo-weekly-card { grid-column: 1; grid-row: auto; }
+  .photo-quick-actions, .photo-studio-panel { grid-column: 1; grid-row: auto; }
   .photo-studio-panel { margin-top: 0; }
   .photo-moodboard > img { height: 170px; }
-  .photo-weekly-card { margin-bottom: 4px; }
   .photo-nav-item { flex-direction: column; gap: 3px; font-size: 7px !important; }
   .photo-nav-item svg { width: 17px; height: 17px; }
 }
