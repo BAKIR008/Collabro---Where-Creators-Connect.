@@ -13,6 +13,8 @@ import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/auth.js';
 import onboardingRoutes from './routes/onboarding.js';
 import projectRoutes from './routes/projects.js';
+import scriptRoutes from './routes/scripts.js';
+import scriptProjectRoutes from './routes/scriptProjects.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -48,6 +50,8 @@ app.use('/api/', globalLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/scripts', scriptRoutes);
+app.use('/api/script-projects', scriptProjectRoutes);
 
 /* ─── Health Check ─── */
 app.get('/api/health', (_req, res) => {
