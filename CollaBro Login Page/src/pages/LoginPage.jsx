@@ -61,9 +61,66 @@ function validatePassword(value) {
 }
 
 /* ─────────────────────────────────────────────────
-   Left Panel — decorative feature list
+   Creative Jokes Panel — left decorative panel
+   Rotates through witty observations about creative work.
 ───────────────────────────────────────────────── */
+const JOKES = [
+  {
+    line: "A script is never finished.\nOnly abandoned to a deadline.",
+    attr: "Every writer, eventually"
+  },
+  {
+    line: "Client: \"Can you make it pop?\"\nWriter: deletes 40 pages",
+    attr: "Revision #3"
+  },
+  {
+    line: "Writer's block:\nwhen your cursor blinks\nfaster than your ideas.",
+    attr: "The blank page, mocking"
+  },
+  {
+    line: "The first draft is just you\ntelling yourself the story.",
+    attr: "Terry Pratchett"
+  },
+  {
+    line: "Revision #7:\nthe \"this is basically\na different script\" edit.",
+    attr: "Every creative ever"
+  },
+  {
+    line: "Deadline: noun.\nThe only known cure\nfor perfectionism.",
+    attr: "CollaBro Dictionary"
+  },
+  {
+    line: "Good work takes time.\nGreat work takes\none more pass.",
+    attr: "The eternal truth"
+  },
+]
+
 function LeftPanel() {
+  const [idx, setIdx] = useState(0)
+  const [visible, setVisible] = useState(true)
+  const prefersReduced = useRef(
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  )
+
+  const goTo = useCallback((next) => {
+    setVisible(false)
+    setTimeout(() => {
+      setIdx(next)
+      setVisible(true)
+    }, 260)
+  }, [])
+
+  useEffect(() => {
+    if (prefersReduced.current) return
+    const t = setInterval(() => {
+      goTo((prev) => (prev + 1) % JOKES.length)
+    }, 5000)
+    return () => clearInterval(t)
+  }, [goTo])
+
+  const joke = JOKES[idx]
+
   return (
     <div className="login-panel-left">
       <div className="left-grid-bg" aria-hidden="true" />
@@ -79,49 +136,40 @@ function LeftPanel() {
         <div className="left-tagline">The Creators Hub</div>
       </div>
 
-      {/* Feature cards */}
-      <div className="left-features" aria-hidden="true">
-        <div className="left-feature-card">
-          <div className="feature-icon feature-icon-yellow">🤝</div>
-          <div className="feature-text">
-            <h4>Find Collaborators</h4>
-            <p>Discover creators who match your vision</p>
-          </div>
+      {/* Joke card */}
+      <div className="left-joke-area" aria-live="polite" aria-atomic="true">
+        <div className={`left-joke-card${visible ? ' lj-visible' : ' lj-hidden'}`}>
+          <div className="lj-quote-mark">"</div>
+          <blockquote className="lj-text">
+            {joke.line.split('\n').map((seg, i) => (
+              <span key={i}>{seg}{i < joke.line.split('\n').length - 1 && <br />}</span>
+            ))}
+          </blockquote>
+          <div className="lj-attr">— {joke.attr}</div>
         </div>
-        <div className="left-feature-card">
-          <div className="feature-icon feature-icon-cyan">🚀</div>
-          <div className="feature-text">
-            <h4>Launch Projects</h4>
-            <p>Turn ideas into real-world products</p>
-          </div>
-        </div>
-        <div className="left-feature-card">
-          <div className="feature-icon feature-icon-magenta">✨</div>
-          <div className="feature-text">
-            <h4>Build Together</h4>
-            <p>The community that ships real things</p>
-          </div>
-        </div>
+
+        {/* Dot navigation */}
+        <nav className="lj-dots" aria-label="Joke navigation">
+          {JOKES.map((_, i) => (
+            <button
+              key={i}
+              className={`lj-dot${i === idx ? ' lj-dot-active' : ''}`}
+              aria-label={`Joke ${i + 1}`}
+              aria-current={i === idx ? 'true' : undefined}
+              onClick={() => goTo(i)}
+            />
+          ))}
+        </nav>
       </div>
 
-      {/* Stats */}
-      <div className="left-stats">
-        <div className="left-stat">
-          <div className="left-stat-number" style={{ color: 'var(--yellow)' }}>12K+</div>
-          <div className="left-stat-label">Creators</div>
-        </div>
-        <div className="left-stat">
-          <div className="left-stat-number" style={{ color: 'var(--cyan)' }}>3K+</div>
-          <div className="left-stat-label">Projects</div>
-        </div>
-        <div className="left-stat">
-          <div className="left-stat-number" style={{ color: 'var(--magenta)' }}>95%</div>
-          <div className="left-stat-label">Satisfaction</div>
-        </div>
+      {/* Bottom tagline */}
+      <div className="left-bottom-note">
+        Where creative work gets done.
       </div>
     </div>
   )
 }
+
 
 /* ─────────────────────────────────────────────────
    Main Login Page
