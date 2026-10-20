@@ -1,12 +1,71 @@
-const platformLinks = ['Discover', 'Creators', 'Projects', 'Community']
-const companyLinks = ['About', 'Contact', 'Blog', 'Careers']
-const socialLinks = [
-  { icon: '📷', label: 'Instagram' },
-  { icon: '▶', label: 'YouTube' },
-  { icon: '💼', label: 'LinkedIn' },
-  { icon: '𝕏', label: 'X / Twitter' },
+/* ── Inline SVG social icons (no external library) ─────────────── */
+const IcoInstagram = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16" aria-hidden="true">
+    <rect x="2" y="2" width="20" height="20" rx="5" />
+    <circle cx="12" cy="12" r="4.5" />
+    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+  </svg>
+)
+
+const IcoLinkedIn = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect x="2" y="9" width="4" height="12" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+)
+
+const IcoGitHub = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
+    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="none" />
+  </svg>
+)
+
+/* ── Data ──────────────────────────────────────────────────────── */
+
+// Platform links — real section anchors only
+const platformLinks = [
+  { label: 'How It Works', href: '#how-it-works' },
+  { label: 'Creator Types', href: '#for-creators' },
+  { label: 'Discover', href: '#discover' },
+  { label: 'Workflow', href: '#workflow' },
 ]
 
+// Company links — future pages, no pages built yet
+const companyLinks = [
+  { label: 'About', href: '#', future: true },
+  { label: 'Contact', href: '#', future: true },
+]
+
+// Social links — real URLs
+const socialLinks = [
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/bakirali_184301?mdxt=MXYyaG5kNDF0MWc0NA==',
+    Icon: IcoInstagram,
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/in/bakirali-kachwala-446595405',
+    Icon: IcoLinkedIn,
+  },
+  {
+    label: 'GitHub',
+    href: 'https://github.com/BAKIR008',
+    Icon: IcoGitHub,
+  },
+]
+
+/* ── Smooth-scroll handler for anchor links ───────────────────── */
+function scrollToSection(href) {
+  if (!href || href === '#') return
+  const el = document.querySelector(href)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+/* ── Component ────────────────────────────────────────────────── */
 export default function Footer() {
   return (
     <footer className="footer" aria-label="Collabro footer">
@@ -26,63 +85,70 @@ export default function Footer() {
 
             <p className="footer-statement">Made for people who make things.</p>
 
+            {/* Loop line — dash separator replaces heart emoji */}
             <div className="footer-loop-line" aria-label="Core loop">
-              <span className="footer-loop-heart" aria-hidden="true">♥</span>
+              <span className="footer-loop-dash" aria-hidden="true" />
               <span>CREATE → DISCOVER → CONNECT → COLLABORATE</span>
             </div>
           </div>
 
-          {/* Platform links */}
+          {/* Platform links — real section anchors */}
           <div className="footer-nav-col">
             <h4>Platform</h4>
             <ul role="list">
-              {platformLinks.map(link => (
-                <li key={link}>
-                  <button
-                    type="button"
-                    aria-label={`${link} — placeholder`}
-                    onClick={(e) => e.preventDefault()}
+              {platformLinks.map(({ label, href }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    onClick={(e) => { e.preventDefault(); scrollToSection(href) }}
+                    aria-label={`Go to ${label} section`}
+                    className="footer-anchor-link"
                   >
-                    {link}
-                  </button>
+                    {label}
+                  </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Company links */}
+          {/* Company links — future pages, clearly noted in code */}
           <div className="footer-nav-col">
             <h4>Company</h4>
             <ul role="list">
-              {companyLinks.map(link => (
-                <li key={link}>
+              {companyLinks.map(({ label, href }) => (
+                <li key={label}>
+                  {/* data-future-page: connect to real route once pages are built */}
                   <button
                     type="button"
-                    aria-label={`${link} — placeholder`}
+                    data-future-page={label.toLowerCase()}
+                    aria-label={`${label} — coming soon`}
                     onClick={(e) => e.preventDefault()}
                   >
-                    {link}
+                    {label}
                   </button>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Social links */}
+          {/* Social / Follow column */}
           <div className="footer-nav-col">
             <h4>Follow</h4>
             <ul role="list">
-              {socialLinks.map(({ icon, label }) => (
+              {socialLinks.map(({ label, href, Icon }) => (
                 <li key={label}>
-                  <button
-                    type="button"
-                    aria-label={`${label} — placeholder`}
-                    onClick={(e) => e.preventDefault()}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Follow CollaBro on ${label}`}
+                    className="footer-anchor-link footer-social-follow"
                   >
-                    <span aria-hidden="true">{icon}</span>
+                    <span className="footer-social-follow-icon" aria-hidden="true">
+                      <Icon />
+                    </span>
                     {label}
-                  </button>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -92,26 +158,28 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="footer-bottom">
           <p className="footer-bottom-text">
-            © 2024 COLLABRO · The Creators Hub · All rights reserved
+            © {new Date().getFullYear()} COLLABRO · The Creators Hub · All rights reserved
           </p>
 
-          <div className="footer-socials" aria-label="Social media links (placeholders)">
-            {socialLinks.map(({ icon, label }) => (
-              <button
+          {/* Social icon buttons */}
+          <div className="footer-socials" aria-label="Social media links">
+            {socialLinks.map(({ label, href, Icon }) => (
+              <a
                 key={label}
-                type="button"
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="footer-social-btn"
-                aria-label={`${label} — placeholder`}
+                aria-label={`Follow CollaBro on ${label}`}
               >
-                {icon}
-              </button>
+                <Icon />
+              </a>
             ))}
           </div>
 
-          <p className="footer-bottom-text" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            Built with
-            <span style={{ color: 'var(--magenta)', animation: 'heartbeat 1.5s ease-in-out infinite' }}>♥</span>
-            for creators
+          {/* Attribution — Shinbyz bold + cyan, no emoji */}
+          <p className="footer-bottom-text">
+            Built with <strong><span className="footer-shinbyz">Shinbyz</span></strong> Minds.
           </p>
         </div>
       </div>
