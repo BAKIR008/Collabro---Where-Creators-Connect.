@@ -1327,222 +1327,6 @@ button {
   100% { background-position: 0 100%; }
 }
 
-/* =====================================================
-   COLLAB REQUEST SECTION
-   ===================================================== */
-.collab-section {
-  background: var(--yellow);
-  border-top: var(--border-thick);
-  border-bottom: var(--border-thick);
-}
-
-.collab-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
-  align-items: center;
-}
-
-@media (max-width: 900px) {
-  .collab-inner { grid-template-columns: 1fr; }
-}
-
-.collab-card {
-  background: var(--white);
-  border: var(--border-thick);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-brutal-xl);
-  overflow: hidden;
-}
-
-.collab-card-header {
-  background: var(--black);
-  color: var(--white);
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.collab-card-title {
-  font-family: var(--font-display);
-  font-size: 20px;
-  letter-spacing: 0.05em;
-}
-
-.collab-card-body {
-  padding: 24px;
-}
-
-.collab-field {
-  margin-bottom: 14px;
-}
-
-.collab-field-label {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gray-dark);
-  margin-bottom: 4px;
-}
-
-.collab-field-value {
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--black);
-}
-
-.collab-field-value.highlight {
-  color: var(--purple);
-}
-
-.collab-flow {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  position: relative;
-}
-
-.collab-flow-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px dashed rgba(11,11,11,0.15);
-  position: relative;
-}
-
-.collab-flow-item:last-child { border-bottom: none; }
-
-.collab-flow-icon {
-  width: 40px;
-  height: 40px;
-  background: var(--black);
-  color: var(--yellow);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-  border: var(--border);
-  box-shadow: var(--shadow-brutal);
-}
-
-.collab-flow-text {
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.collab-flow-subtext {
-  font-size: 12px;
-  color: var(--gray-dark);
-  font-family: var(--font-mono);
-}
-
-/* =====================================================
-   PROFILE SHOWCASE SECTION
-   ===================================================== */
-.profile-section {
-  background: var(--yellow);
-  border-bottom: var(--border-thick);
-}
-
-.profile-showcase-inner {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 60px;
-  align-items: center;
-}
-
-@media (max-width: 900px) {
-  .profile-showcase-inner { grid-template-columns: 1fr; }
-}
-
-.profile-mock-card {
-  background: var(--white);
-  border: var(--border-thick);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-brutal-xl);
-  overflow: hidden;
-}
-
-.profile-mock-top {
-  background: var(--black);
-  padding: 32px 28px;
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-}
-
-.profile-mock-avatar {
-  width: 72px;
-  height: 72px;
-  background: var(--yellow);
-  border: var(--border-thick);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  flex-shrink: 0;
-  box-shadow: var(--shadow-brutal);
-}
-
-.profile-mock-name {
-  font-family: var(--font-display);
-  font-size: 32px;
-  color: var(--white);
-  letter-spacing: 0.03em;
-}
-
-.profile-mock-role {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  color: var(--gray-mid);
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-
-.profile-mock-body {
-  padding: 24px 28px;
-}
-
-.profile-mock-portfolio {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.portfolio-tile {
-  aspect-ratio: 1;
-  border: var(--border);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  box-shadow: var(--shadow-brutal);
-  transition: transform var(--transition);
-}
-
-.portfolio-tile:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-brutal-lg);
-}
-
-.portfolio-tile:nth-child(1) { background: var(--cyan); }
-.portfolio-tile:nth-child(2) { background: var(--magenta); }
-.portfolio-tile:nth-child(3) { background: var(--purple); }
-.portfolio-tile:nth-child(4) { background: var(--yellow); }
-.portfolio-tile:nth-child(5) { background: var(--offwhite); }
-.portfolio-tile:nth-child(6) { background: var(--black); }
 
 /* =====================================================
    BENTO GRID SECTION
@@ -1753,15 +1537,56 @@ button {
   gap: 8px;
 }
 
-.footer-loop-heart {
+/* Replaces heart emoji — clean CSS dash separator */
+.footer-loop-dash {
   display: inline-block;
-  animation: heartbeat 1.5s ease-in-out infinite;
-  color: var(--magenta);
+  width: 18px;
+  height: 2px;
+  background: var(--cyan);
+  border-radius: 1px;
+  flex-shrink: 0;
 }
 
-@keyframes heartbeat {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.3); }
+/* Shinbyz attribution brand name */
+.footer-shinbyz {
+  color: var(--cyan);
+  font-weight: 700;
+}
+
+/* Anchor links in footer nav */
+.footer-anchor-link {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--gray-dark);
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: none;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-anchor-link:hover {
+  color: var(--black);
+  transform: translateX(4px);
+}
+
+/* Social follow links in the Follow column */
+.footer-social-follow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-social-follow-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .footer-nav-col h4 {

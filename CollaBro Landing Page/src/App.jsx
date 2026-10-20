@@ -10,8 +10,7 @@ import ProblemSection from './components/ProblemSection'
 import HowItWorksSection from './components/HowItWorksSection'
 import EcosystemSection from './components/EcosystemSection'
 import DiscoverySection from './components/DiscoverySection'
-import CollabRequestSection from './components/CollabRequestSection'
-import ProfileShowcaseSection from './components/ProfileShowcaseSection'
+import WorkflowSection from './components/WorkflowSection'
 import BentoGridSection from './components/BentoGridSection'
 import FinalCTASection from './components/FinalCTASection'
 import Footer from './components/Footer'
@@ -75,8 +74,7 @@ export default function App() {
           <HowItWorksSection />
           <EcosystemSection />
           <DiscoverySection />
-          <CollabRequestSection />
-          <ProfileShowcaseSection />
+          <WorkflowSection />
           <BentoGridSection />
           <FinalCTASection />
         </main>
