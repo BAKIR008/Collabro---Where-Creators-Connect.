@@ -1,6 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { AUTH_APP_URL } from '../config'
 
+// Map nav labels to real section IDs
+const navLinks = [
+  { label: 'Discover', href: '#discover' },
+  { label: 'How It Works', href: '#how-it-works' },
+  { label: 'For Creators', href: '#for-creators' },
+  { label: 'Workflow', href: '#workflow' },
+]
+
+function scrollToSection(href) {
+  const el = document.querySelector(href)
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const navRef = useRef()
@@ -10,8 +23,6 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-
-  const navLinks = ['Discover', 'How It Works', 'For Creators', 'Projects', 'Community']
 
   return (
     <nav
@@ -37,15 +48,15 @@ export default function Navbar() {
 
         {/* Nav links */}
         <ul className="navbar-nav" role="list">
-          {navLinks.map((link) => (
-            <li key={link}>
+          {navLinks.map(({ label, href }) => (
+            <li key={label}>
               <button
                 type="button"
-                aria-label={link}
-                onClick={(e) => e.preventDefault()}
-                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                aria-label={label}
+                onClick={() => scrollToSection(href)}
+                onKeyDown={(e) => { if (e.key === 'Enter') scrollToSection(href) }}
               >
-                {link}
+                {label}
               </button>
             </li>
           ))}
