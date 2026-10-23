@@ -10,11 +10,17 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import onboardingRoutes from './routes/onboarding.js';
 import projectRoutes from './routes/projects.js';
 import scriptRoutes from './routes/scripts.js';
 import scriptProjectRoutes from './routes/scriptProjects.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,10 +30,19 @@ app.use(mongoSanitize());                          // prevent NoSQL injection
 app.set('trust proxy', 1);
 
 /* ─── CORS ─── */
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:5111',
+  'http://localhost:5173',  // standalone script_writing_dashboard dev server
+  'http://localhost:5174',  // in case Vite auto-increments the port
+];
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, cb) => {
+    // allow server-to-server calls (no origin) or listed origins
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
@@ -52,6 +67,10 @@ app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/scripts', scriptRoutes);
 app.use('/api/script-projects', scriptProjectRoutes);
+
+/* ─── Static: Uploaded files (avatars, etc.) ─── */
+// Served at /uploads/<filename> — e.g. /uploads/avatars/1234567890-abc.jpg
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 /* ─── Health Check ─── */
 app.get('/api/health', (_req, res) => {
