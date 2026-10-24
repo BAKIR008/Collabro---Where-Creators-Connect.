@@ -34,6 +34,8 @@ const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5111',
   'http://localhost:5173',  // standalone script_writing_dashboard dev server
   'http://localhost:5174',  // in case Vite auto-increments the port
+  'http://localhost:5175',  // photography-dashbaord dev server
+  'http://localhost:4173',  // photography-dashbaord vite preview
 ];
 app.use(cors({
   origin: (origin, cb) => {
