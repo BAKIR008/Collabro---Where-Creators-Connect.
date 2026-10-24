@@ -10,7 +10,7 @@
  * It also enforces onboarding completion before allowing dashboard access.
  */
 
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from './hooks/useAuth.js';
 import { useOnboarding } from './hooks/useOnboarding.js';
@@ -21,6 +21,9 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import { OnboardingPage } from './pages/Onboarding/OnboardingPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import ScriptDashboard from './pages/ScriptDashboard/ScriptDashboard.jsx';
+import ScriptEditor from './pages/ScriptDashboard/ScriptEditor.jsx';
+import ProjectDetail from './pages/ScriptDashboard/ProjectDetail.jsx';
 
 /* ─────────────────────────────────────────────────
    Loading Spinner
@@ -173,6 +176,7 @@ function OnboardingGuard({ children }) {
   const { user, loading: authLoading } = useAuth();
   const { status, loading: onboardingLoading } = useOnboarding();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (authLoading || onboardingLoading) return;
@@ -182,11 +186,13 @@ function OnboardingGuard({ children }) {
       return;
     }
 
-    if (status?.status === 'completed') {
+    // Allow edit-mode navigation even if onboarding is already completed
+    const isEditMode = location.state?.editMode === true;
+    if (status?.status === 'completed' && !isEditMode) {
       // Already done — go to dashboard
       navigate('/dashboard', { replace: true });
     }
-  }, [user, status, authLoading, onboardingLoading, navigate]);
+  }, [user, status, authLoading, onboardingLoading, navigate, location]);
 
   if (authLoading || onboardingLoading) {
     return <LoadingScreen />;
@@ -239,11 +245,33 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
+      {/* Script Writer Dashboard — main hub */}
       <Route
         path="/script-dashboard"
         element={
           <ProtectedRoute requireOnboarding>
-            <RoleComingSoon role="script-writer" />
+            <ScriptDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Script Editor — create/edit a script */}
+      <Route
+        path="/script-dashboard/editor/:id"
+        element={
+          <ProtectedRoute requireOnboarding>
+            <ScriptEditor />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Client Project Detail */}
+      <Route
+        path="/script-dashboard/project/:id"
+        element={
+          <ProtectedRoute requireOnboarding>
+            <ProjectDetail />
           </ProtectedRoute>
         }
       />

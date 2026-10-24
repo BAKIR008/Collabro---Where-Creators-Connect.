@@ -529,7 +529,10 @@ export default function App() {
               aria-expanded={profileOpen}
               onClick={() => { setProfileOpen((open) => !open); setNotificationsOpen(false) }}
             >
-              <img src={user?.profilePicture || photoUrl('photo-1534528741775-53994a69daeb', 96)} alt="" />
+              {user?.profilePicture
+                ? <img src={user.profilePicture.startsWith('/') ? `http://localhost:5000${user.profilePicture}` : user.profilePicture} alt="" />
+                : <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:32, height:32, borderRadius:'50%', background:'#C9A84C', color:'#1A1714', fontWeight:700, fontSize:13 }}>{(profileName||'U')[0].toUpperCase()}</span>
+              }
               <span>{profileName}</span>
               <Icon name="chevron" size={14} />
             </button>
@@ -545,6 +548,48 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* PROTOTYPE NOTICE BANNER */}
+      <div style={{
+        background: '#1A1714',
+        borderBottom: '2px solid #C9A84C',
+        padding: '10px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 10,
+        fontSize: 13,
+        color: 'rgba(255,253,246,0.8)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 90,
+      }}>
+        <span>
+          <span style={{ color: '#C9A84C', fontWeight: 700 }}>ℹ UI Prototype</span>
+          {' '}— Scripts shown here are sample previews and are not saved. Your real scripts, projects, and profile live in the{' '}
+          <strong style={{ color: '#FFFDF6' }}>CollaBro Script Dashboard</strong>.
+        </span>
+        <a
+          href="http://localhost:5111/script-dashboard"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            background: '#C9A84C',
+            color: '#1A1714',
+            padding: '6px 16px',
+            borderRadius: 4,
+            fontWeight: 700,
+            fontSize: 12,
+            letterSpacing: '0.06em',
+            textDecoration: 'none',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Open Real Dashboard →
+        </a>
+      </div>
 
       {currentPage === 'settings' ? (
         <SettingsPage
@@ -791,7 +836,7 @@ export default function App() {
           {/* WRITING STUDIO PANEL */}
           <section className="script-studio-panel">
             <div className="script-studio-header">
-              <h2>PHOTO STUDIO</h2>
+              <h2>WRITING STUDIO</h2>
               <span>● READY</span>
             </div>
 
@@ -815,7 +860,7 @@ export default function App() {
                 className={activeStudioTab === 'Moodboard' ? 'selected' : ''}
                 onClick={() => setActiveStudioTab('Moodboard')}
               >
-                <Icon name="camera" size={15} /> Moodboard
+                <Icon name="pen" size={15} /> Moodboard
               </button>
               <button
                 className={activeStudioTab === 'Shot list' ? 'selected' : ''}

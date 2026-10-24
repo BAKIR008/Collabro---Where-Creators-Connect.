@@ -56,6 +56,8 @@ a { color: inherit; text-decoration: none; }
     z-index: 9998;
     top: -100px;
     left: -100px;
+    top: -100px;
+    left: -100px;
     display: block;
     width: 36px;
     height: 36px;

@@ -59,7 +59,11 @@ const DURATIONS = [
 export const GoalsPreferencesStep = ({ data, onChange }) => {
   const isFreelancer = data.accountType !== 'client';
   const goals = data.goals || [];
-  const workMode = data.workMode || null;
+  
+  // For freelancers, these are stored in collaborationPreferences
+  const workMode = isFreelancer 
+    ? (data.collaborationPreferences?.workMode || null)
+    : (data.workMode || null);
   const workStyle = data.workStyle || null;
   const projectTypes = data.collaborationPreferences?.projectTypes || [];
   const duration = data.collaborationPreferences?.duration || null;
@@ -137,6 +141,59 @@ export const GoalsPreferencesStep = ({ data, onChange }) => {
             </div>
           </div>
 
+          {/* Project Types - FREELANCERS NEED THIS TOO */}
+          <div className="ob-card" style={{ marginBottom: '24px' }}>
+            <div className="ob-section">
+              <div className="ob-section-title">
+                Project Types You're Interested In
+                <span className="ob-section-required">*</span>
+              </div>
+              <div className="ob-section-desc">What types of projects do you want to work on?</div>
+              <div className="ob-skills-pool">
+                {PROJECT_TYPES.map((type) => (
+                  <button
+                    key={type.value}
+                    type="button"
+                    className={`ob-chip ${projectTypes.includes(type.value) ? 'selected' : ''}`}
+                    onClick={() => toggleProjectType(type.value)}
+                    aria-pressed={projectTypes.includes(type.value)}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Duration - FREELANCERS NEED THIS TOO */}
+          <div className="ob-card" style={{ marginBottom: '24px' }}>
+            <div className="ob-section">
+              <div className="ob-section-title">
+                Preferred Project Duration
+                <span className="ob-section-required">*</span>
+              </div>
+              <div className="ob-level-grid">
+                {DURATIONS.map((d) => (
+                  <div
+                    key={d.value}
+                    className={`ob-level-card ${duration === d.value ? 'selected' : ''}`}
+                    onClick={() => setDuration(d.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDuration(d.value); }
+                    }}
+                    role="radio"
+                    tabIndex={0}
+                    aria-checked={duration === d.value}
+                    aria-label={`${d.label}: ${d.description}`}
+                  >
+                    <div className="ob-level-name">{d.label}</div>
+                    <div className="ob-level-years">{d.description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Work Mode */}
           <div className="ob-card" style={{ marginBottom: '24px' }}>
             <div className="ob-section">
@@ -149,9 +206,22 @@ export const GoalsPreferencesStep = ({ data, onChange }) => {
                   <div
                     key={mode.value}
                     className={`ob-level-card ${workMode === mode.value ? 'selected' : ''}`}
-                    onClick={() => onChange({ workMode: mode.value })}
+                    onClick={() => onChange({
+                      collaborationPreferences: {
+                        ...(data.collaborationPreferences || {}),
+                        workMode: mode.value,
+                      },
+                    })}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChange({ workMode: mode.value }); }
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onChange({
+                          collaborationPreferences: {
+                            ...(data.collaborationPreferences || {}),
+                            workMode: mode.value,
+                          },
+                        });
+                      }
                     }}
                     role="radio"
                     tabIndex={0}

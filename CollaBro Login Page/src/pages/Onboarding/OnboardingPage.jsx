@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useOnboarding } from '../../hooks/useOnboarding.js';
 import {
   getConfig,
@@ -31,6 +31,10 @@ import CustomCursor from '../../components/CustomCursor.jsx';
 
 export const OnboardingPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // editMode: set when user navigates here from the "Edit Profile" button in the dashboard
+  const editMode = location.state?.editMode === true;
+
   const {
     responses,
     loading,
@@ -44,8 +48,8 @@ export const OnboardingPage = () => {
   const accountType = formData.accountType || 'freelancer'; // Default for config
   const stepIds = getStepIds(accountType);
   
-  // Try to recover current step from DB or start at first step
-  const [currentStepId, setCurrentStepId] = useState('account-type');
+  // In edit mode, start at the review step so users can see and edit their profile
+  const [currentStepId, setCurrentStepId] = useState(editMode ? 'review' : 'account-type');
   const [validationErrors, setValidationErrors] = useState({});
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -66,13 +70,13 @@ export const OnboardingPage = () => {
   const isLastStep = currentStepIndex === stepIds.length - 1;
 
   /**
-   * Redirect if already completed
+   * Redirect if already completed — but not in edit mode (user deliberately came here to edit)
    */
   useEffect(() => {
-    if (isCompleted) {
+    if (isCompleted && !editMode) {
       navigate('/dashboard');
     }
-  }, [isCompleted, navigate]);
+  }, [isCompleted, navigate, editMode]);
 
   /**
    * Load saved responses into form data
@@ -162,7 +166,13 @@ export const OnboardingPage = () => {
           if (!formData.goals || formData.goals.length === 0) {
             errors.goals = 'Please select at least one goal';
           }
-          if (!formData.workMode) {
+          if (!formData.collaborationPreferences?.projectTypes || formData.collaborationPreferences.projectTypes.length === 0) {
+            errors.projectTypes = 'Please select at least one project type';
+          }
+          if (!formData.collaborationPreferences?.duration) {
+            errors.duration = 'Please select a project duration';
+          }
+          if (!formData.collaborationPreferences?.workMode) {
             errors.workMode = 'Please select a work mode';
           }
           if (!formData.workStyle) {
@@ -236,7 +246,16 @@ export const OnboardingPage = () => {
       return;
     }
 
-    const result = await completeOnboarding(formData);
+    // Prepare payload: map primaryRole to collaborationPreferences.creatorRoles for freelancers
+    const payload = { ...formData };
+    if (payload.accountType !== 'client' && payload.primaryRole) {
+      payload.collaborationPreferences = {
+        ...(payload.collaborationPreferences || {}),
+        creatorRoles: [payload.primaryRole],
+      };
+    }
+
+    const result = await completeOnboarding(payload);
     if (result.success) {
       // Role-aware routing
       const role = formData.primaryRole;
