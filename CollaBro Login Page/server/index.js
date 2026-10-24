@@ -17,6 +17,7 @@ import onboardingRoutes from './routes/onboarding.js';
 import projectRoutes from './routes/projects.js';
 import scriptRoutes from './routes/scripts.js';
 import scriptProjectRoutes from './routes/scriptProjects.js';
+import photographyRoutes from './routes/photography.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,9 +70,10 @@ app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/scripts', scriptRoutes);
 app.use('/api/script-projects', scriptProjectRoutes);
+app.use('/api/photography', photographyRoutes);
 
-/* ─── Static: Uploaded files (avatars, etc.) ─── */
-// Served at /uploads/<filename> — e.g. /uploads/avatars/1234567890-abc.jpg
+/* ─── Static: Uploaded files (avatars, portfolio images, deliverables) ─── */
+// /uploads/avatars/<f>, /uploads/portfolio/<f>, /uploads/deliverables/<f>
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 /* ─── Health Check ─── */
