@@ -8,6 +8,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CustomCursor from '../components/CustomCursor.jsx'
 import ToastContainer, { useToast } from '../components/ToastSystem.jsx'
+import { getDashboardPath } from '../config/dashboardRoutes.js'
 
 /* ─────────────────────────────────────────────────
    Eye SVG icons for password toggle
@@ -267,7 +268,7 @@ export default function SignUpPage() {
         const statusData = await statusRes.json()
         if (statusData.onboarding?.status === 'completed') {
           addToast('success', 'Google sign-in successful! 🎉', `Welcome back, ${data.user.name}!`, 3000)
-          setTimeout(() => navigate('/dashboard'), 1200)
+          setTimeout(() => navigate(getDashboardPath(statusData.onboarding), { replace: true }), 1200)
         } else {
           addToast('success', 'Google sign-up successful! Let\'s set up your profile 🚀', `Welcome to CollaBro, ${data.user.name}!`, 3000)
           setTimeout(() => navigate('/onboarding'), 1200)

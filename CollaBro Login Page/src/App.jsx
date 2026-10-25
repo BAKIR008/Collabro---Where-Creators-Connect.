@@ -14,6 +14,7 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import { useEffect } from 'react';
 import { useAuth } from './hooks/useAuth.js';
 import { useOnboarding } from './hooks/useOnboarding.js';
+import { getDashboardPath, getPhotographyDashboardUrl } from './config/dashboardRoutes.js';
 
 import LoginPage from './pages/LoginPage.jsx';
 import SignUpPage from './pages/SignUpPage.jsx';
@@ -65,6 +66,14 @@ function LoadingScreen() {
 function RoleComingSoon({ role }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (role === 'photographer') {
+      window.location.replace(getPhotographyDashboardUrl());
+    }
+  }, [role]);
+
+  if (role === 'photographer') return <LoadingScreen />;
+
   const labels = {
     'video-editor': '🎬 Video Editor',
     'content-creator': '✨ Content Creator',
@@ -190,7 +199,7 @@ function OnboardingGuard({ children }) {
     const isEditMode = location.state?.editMode === true;
     if (status?.status === 'completed' && !isEditMode) {
       // Already done — go to dashboard
-      navigate('/dashboard', { replace: true });
+      navigate(getDashboardPath(status), { replace: true });
     }
   }, [user, status, authLoading, onboardingLoading, navigate, location]);
 

@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useOnboarding } from '../../hooks/useOnboarding.js';
+import { getDashboardPath } from '../../config/dashboardRoutes.js';
 import {
   getConfig,
   getStepIds,
@@ -37,6 +38,7 @@ export const OnboardingPage = () => {
 
   const {
     responses,
+    status,
     loading,
     saving,
     saveDraft,
@@ -74,9 +76,9 @@ export const OnboardingPage = () => {
    */
   useEffect(() => {
     if (isCompleted && !editMode) {
-      navigate('/dashboard');
+      navigate(getDashboardPath(status || responses), { replace: true });
     }
-  }, [isCompleted, navigate, editMode]);
+  }, [isCompleted, navigate, editMode, status, responses]);
 
   /**
    * Load saved responses into form data
@@ -246,8 +248,26 @@ export const OnboardingPage = () => {
       return;
     }
 
+    // If user uploaded a profile picture in step 2, save it now
+    if (formData.profileImage instanceof File) {
+      try {
+        const imgForm = new FormData();
+        imgForm.append('picture', formData.profileImage);
+        await fetch('/api/auth/profile/picture', {
+          method: 'POST',
+          credentials: 'include',
+          body: imgForm,
+        });
+      } catch (err) {
+        console.error('[Profile Picture Upload Failed]', err);
+      }
+    }
+
     // Prepare payload: map primaryRole to collaborationPreferences.creatorRoles for freelancers
     const payload = { ...formData };
+    delete payload.profileImage;
+    delete payload.profileImagePreview;
+
     if (payload.accountType !== 'client' && payload.primaryRole) {
       payload.collaborationPreferences = {
         ...(payload.collaborationPreferences || {}),
@@ -256,24 +276,9 @@ export const OnboardingPage = () => {
     }
 
     const result = await completeOnboarding(payload);
-    if (result.success) {
-      // Role-aware routing
-      const role = formData.primaryRole;
-      const accType = formData.accountType;
 
-      if (accType === 'freelancer') {
-        if (role === 'photographer') {
-          navigate('/photographer-dashboard');
-        } else if (role === 'script-writer') {
-          navigate('/script-dashboard');
-        } else {
-          // Other roles: role-aware "coming soon" via DashboardPage
-          navigate('/dashboard');
-        }
-      } else {
-        // Client
-        navigate('/dashboard');
-      }
+    if (result.success) {
+      navigate(getDashboardPath(formData), { replace: true });
     } else {
       setValidationErrors({ server: result.message || 'Failed to complete onboarding. Please try again.' });
     }
