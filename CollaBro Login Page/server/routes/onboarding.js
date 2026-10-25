@@ -24,7 +24,10 @@ const router = express.Router();
 ───────────────────────────────────────────────── */
 router.get('/status', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('onboarding');
+    const [user, profile] = await Promise.all([
+      User.findById(req.user._id).select('onboarding'),
+      CreatorProfile.findOne({ user: req.user._id }).select('accountType primaryRole'),
+    ]);
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
@@ -38,6 +41,8 @@ router.get('/status', protect, async (req, res) => {
         surveyVersion: user.onboarding.version,
         currentStepId: user.onboarding.currentStepId,
         completedAt: user.onboarding.completedAt,
+        accountType: profile?.accountType || null,
+        primaryRole: profile?.primaryRole || null,
       },
     });
   } catch (err) {
@@ -319,12 +324,24 @@ router.post(
       // Save profile FIRST — only mark onboarding complete if it succeeds
       await profile.save();
 
-      // Mark onboarding complete only after successful profile save
-      await User.findByIdAndUpdate(req.user._id, {
+      // Mark onboarding complete and sync user fields
+      const userUpdates = {
         'onboarding.status': 'completed',
         'onboarding.completedAt': new Date(),
         'onboarding.version': 1,
-      });
+      };
+      if (displayName && displayName.trim()) {
+        userUpdates.name = displayName.trim();
+      }
+      if (bio && bio.trim()) {
+        userUpdates.bio = bio.trim();
+      }
+      if (primaryRole) {
+        userUpdates.$addToSet = { interests: primaryRole };
+      }
+
+      await User.findByIdAndUpdate(req.user._id, userUpdates);
+
 
       console.log(`✅ Onboarding completed for user ${req.user.email} (accountType: ${accountType}${accountType === 'freelancer' ? `, role: ${primaryRole}` : ''})`);
 

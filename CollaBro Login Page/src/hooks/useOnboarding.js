@@ -151,6 +151,8 @@ export const useOnboarding = () => {
       setStatus({
         status: 'completed',
         completedAt: responseData.onboarding?.completedAt || new Date().toISOString(),
+        accountType: responseData.accountType || data.accountType || null,
+        primaryRole: responseData.primaryRole || data.primaryRole || null,
       });
       return { success: true, data: responseData };
     } catch (err) {
