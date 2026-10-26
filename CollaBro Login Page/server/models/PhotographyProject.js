@@ -169,6 +169,9 @@ const photographyProjectSchema = new mongoose.Schema(
 );
 
 photographyProjectSchema.index({ photographer: 1, status: 1, createdAt: -1 });
+// Index for client dashboard queries
+photographyProjectSchema.index({ client: 1, status: 1, updatedAt: -1 });
+photographyProjectSchema.index({ client: 1, createdAt: -1 });
 
 export const STATUS_LABEL_MAP = STATUS_LABELS;
 
