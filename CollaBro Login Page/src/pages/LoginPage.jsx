@@ -8,7 +8,8 @@ import { useNavigate } from 'react-router-dom'
 import CustomCursor from '../components/CustomCursor.jsx'
 import ToastContainer, { useToast } from '../components/ToastSystem.jsx'
 import { getDashboardPath } from '../config/dashboardRoutes.js'
-
+import { getJokesForRole } from '../config/authJokes.js'
+ 
 /* ─────────────────────────────────────────────────
    Eye SVG icons for password toggle
 ───────────────────────────────────────────────── */
