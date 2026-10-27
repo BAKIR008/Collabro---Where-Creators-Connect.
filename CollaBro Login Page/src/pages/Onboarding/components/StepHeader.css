@@ -1,50 +1,41 @@
 /**
- * StepHeader Styles
+ * StepHeader Styles — Premium redesign, no emojis
  */
 
 .step-header {
-  text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 40px;
 }
 
-.step-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+.step-eyebrow {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
 }
 
 .step-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 3rem;
+  font-size: 2.75rem;
+  line-height: 1.05;
   color: var(--text-primary);
-  margin: 0 0 1rem 0;
-  letter-spacing: 1px;
+  margin: 0 0 12px 0;
+  letter-spacing: 0.02em;
 }
 
 .step-subtitle {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.125rem;
+  font-size: 1rem;
+  line-height: 1.6;
   color: var(--text-secondary);
   margin: 0;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 580px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
-  .step-icon {
-    font-size: 3rem;
-  }
-
-  .step-title {
-    font-size: 2.25rem;
-  }
-
-  .step-subtitle {
-    font-size: 1rem;
-  }
-
-  .step-header {
-    margin-bottom: 2rem;
-  }
+  .step-title { font-size: 2rem; }
+  .step-subtitle { font-size: 0.9375rem; }
+  .step-header { margin-bottom: 28px; }
 }

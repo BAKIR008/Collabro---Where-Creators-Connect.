@@ -1,145 +1,179 @@
-import React, { useRef } from 'react';
-import { StepHeader } from '../components';
+import React from 'react';
+import { StepHeader, FileUpload } from '../components';
 
 export const AboutYouStep = ({ data, onChange }) => {
   const isFreelancer = data.accountType === 'freelancer';
-  const imageInputRef = useRef(null);
 
   const handleChange = (field, value) => {
     onChange({ [field]: value });
   };
 
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      onChange({
-        profilePicture: {
-          file,
-          previewUrl,
-          name: file.name,
-          size: file.size,
-          type: file.type
-        }
-      });
-    }
+  const handleImageUpload = (file) => {
+    onChange({
+      profileImage: file,
+      profileImagePreview: URL.createObjectURL(file)
+    });
   };
 
-  const removeImage = () => {
-    onChange({ profilePicture: null });
+  const handleImageRemove = () => {
+    onChange({
+      profileImage: null,
+      profileImagePreview: null
+    });
   };
 
   return (
     <div className="about-you-step fade-in">
       <StepHeader
-        icon="👤"
-        title="About You"
-        subtitle="Let's set up your basic profile"
+        eyebrow="Step 2"
+        title="Tell Us About Yourself"
+        subtitle="Help others get to know you better with a profile photo and some basic information."
       />
 
-      <div className="form-group" style={{ marginTop: '2rem' }}>
-        <label>Profile Picture</label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
-          {data.profilePicture?.previewUrl ? (
-            <div style={{ position: 'relative' }}>
-              <img 
-                src={data.profilePicture.previewUrl} 
-                alt="Profile Preview" 
-                style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }}
+      <div className="ob-card">
+        {/* Profile Photo Upload */}
+        <div className="ob-section">
+          <div className="ob-section-title">
+            Profile Photo
+            <span className="ob-section-optional">(Optional)</span>
+          </div>
+          <FileUpload
+            type="image"
+            accept={['image/jpeg', 'image/png', 'image/webp', 'image/gif']}
+            maxSizeMB={5}
+            value={data.profileImagePreview}
+            onChange={handleImageUpload}
+            onRemove={handleImageRemove}
+            title="Upload Your Photo"
+            subtitle="Show your face! Photos help build trust. JPG, PNG, or WebP — Max 5MB"
+          />
+        </div>
+
+        {/* Display Name */}
+        <div className="ob-section">
+          <div className="ob-field">
+            <label htmlFor="displayName" className="ob-label">
+              Display Name
+              <span className="ob-section-required">*</span>
+            </label>
+            <input
+              id="displayName"
+              type="text"
+              className="ob-input"
+              value={data.displayName || ''}
+              onChange={(e) => handleChange('displayName', e.target.value)}
+              placeholder={isFreelancer ? "Your name or creative alias" : "Your full name"}
+              maxLength={100}
+              aria-required="true"
+              aria-invalid={!data.displayName}
+            />
+            <div className="ob-field-hint">
+              {isFreelancer
+                ? "This is how you'll appear to potential collaborators"
+                : "The name clients will see on your profile"}
+            </div>
+            {data.displayName && (
+              <div className="ob-char-count">{data.displayName.length}/100</div>
+            )}
+          </div>
+        </div>
+
+        {/* Company (Client only) */}
+        {!isFreelancer && (
+          <div className="ob-section">
+            <div className="ob-field">
+              <label htmlFor="company" className="ob-label">
+                Company / Organization
+                <span className="ob-label-optional">(Optional)</span>
+              </label>
+              <input
+                id="company"
+                type="text"
+                className="ob-input"
+                value={data.company || ''}
+                onChange={(e) => handleChange('company', e.target.value)}
+                placeholder="Company name or organization"
+                maxLength={100}
               />
-              <button 
-                type="button" 
-                onClick={removeImage}
-                style={{ position: 'absolute', top: 0, right: 0, background: 'red', color: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}
-              >
-                ✕
-              </button>
             </div>
-          ) : (
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              👤
+          </div>
+        )}
+
+        {/* Profile Title */}
+        <div className="ob-section">
+          <div className="ob-field">
+            <label htmlFor="profileTitle" className="ob-label">
+              {isFreelancer ? 'Professional Title' : 'Your Role'}
+              <span className="ob-label-optional">(Optional)</span>
+            </label>
+            <input
+              id="profileTitle"
+              type="text"
+              className="ob-input"
+              value={data.profileTitle || ''}
+              onChange={(e) => handleChange('profileTitle', e.target.value)}
+              placeholder={isFreelancer ? "e.g., Senior Video Editor & Motion Designer" : "e.g., Creative Director, Marketing Manager"}
+              maxLength={100}
+            />
+            <div className="ob-field-hint">
+              {isFreelancer
+                ? "Your specialty or what you're best known for"
+                : "Your position or title"}
             </div>
-          )}
-          
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/jpg"
-            onChange={handleImageSelect}
-            style={{ display: 'none' }}
-            ref={imageInputRef}
-          />
-          <button 
-            type="button" 
-            className="btn btn-secondary" 
-            onClick={() => imageInputRef.current.click()}
-          >
-            Upload Photo
-          </button>
+          </div>
         </div>
-      </div>
 
-      <div className="form-group">
-        <label>Display Name <span className="required">*</span></label>
-        <input
-          type="text"
-          className="form-input"
-          value={data.displayName || ''}
-          onChange={(e) => handleChange('displayName', e.target.value)}
-          placeholder="Your full name or brand name"
-        />
-      </div>
-
-      {!isFreelancer && (
-        <div className="form-group">
-          <label>Company / Organization</label>
-          <input
-            type="text"
-            className="form-input"
-            value={data.company || ''}
-            onChange={(e) => handleChange('company', e.target.value)}
-            placeholder="Where do you work?"
-          />
+        {/* Bio */}
+        <div className="ob-section">
+          <div className="ob-field">
+            <label htmlFor="bio" className="ob-label">
+              {isFreelancer ? 'Bio' : 'About You'}
+              <span className="ob-label-optional">(Optional)</span>
+            </label>
+            <textarea
+              id="bio"
+              className="ob-input ob-textarea"
+              value={data.bio || ''}
+              onChange={(e) => handleChange('bio', e.target.value)}
+              placeholder={isFreelancer 
+                ? "Share your creative journey, what drives you, and what makes your work unique..." 
+                : "Tell us about your goals, what you're looking for, and your creative vision..."}
+              rows={5}
+              maxLength={500}
+            />
+            <div className="ob-char-count">{(data.bio || '').length}/500</div>
+            <div className="ob-field-hint">
+              {isFreelancer
+                ? "This appears on your public profile. Make it engaging!"
+                : "Help creators understand what you're looking for"}
+            </div>
+          </div>
         </div>
-      )}
 
-      <div className="form-group">
-        <label>{isFreelancer ? 'Profile Title' : 'Your Role / Title'}</label>
-        <input
-          type="text"
-          className="form-input"
-          value={data.profileTitle || ''}
-          onChange={(e) => handleChange('profileTitle', e.target.value)}
-          placeholder={isFreelancer ? "e.g., Senior Video Editor" : "e.g., Marketing Director"}
-        />
+        {/* Education (Freelancer only) */}
+        {isFreelancer && (
+          <div className="ob-section">
+            <div className="ob-field">
+              <label htmlFor="education" className="ob-label">
+                Education
+                <span className="ob-label-optional">(Optional)</span>
+              </label>
+              <input
+                id="education"
+                type="text"
+                className="ob-input"
+                value={data.education || ''}
+                onChange={(e) => handleChange('education', e.target.value)}
+                placeholder="e.g., BA in Film Production, Self-taught"
+                maxLength={150}
+              />
+              <div className="ob-field-hint">
+                Your degree, certifications, or learning background
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      <div className="form-group">
-        <label>{isFreelancer ? 'Short Bio' : 'About You'}</label>
-        <textarea
-          className="form-input"
-          value={data.bio || ''}
-          onChange={(e) => handleChange('bio', e.target.value)}
-          placeholder="Tell us a little bit about yourself..."
-          rows={4}
-          maxLength={500}
-        />
-        <div className="char-count" style={{ fontSize: '0.8rem', color: '#888', textAlign: 'right' }}>
-          {(data.bio || '').length}/500
-        </div>
-      </div>
-
-      {isFreelancer && (
-        <div className="form-group">
-          <label>Education (optional)</label>
-          <input
-            type="text"
-            className="form-input"
-            value={data.education || ''}
-            onChange={(e) => handleChange('education', e.target.value)}
-            placeholder="Where did you study?"
-          />
-        </div>
-      )}
     </div>
   );
 };

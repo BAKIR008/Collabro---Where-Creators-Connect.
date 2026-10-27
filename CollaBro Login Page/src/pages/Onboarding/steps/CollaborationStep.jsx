@@ -1,6 +1,7 @@
 /**
  * CollaborationStep Component
  * Step 4: Collaboration preferences
+ * (Legacy step — kept for backward compatibility but not used in active flow)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -9,27 +10,27 @@ import { StepHeader } from '../components';
 import './CollaborationStep.css';
 
 const PROJECT_TYPES = [
-  { value: 'short-form-video', label: 'Short-Form Video', icon: '📱' },
-  { value: 'long-form-video', label: 'Long-Form Video', icon: '🎬' },
-  { value: 'social-media-content', label: 'Social Media Content', icon: '📲' },
-  { value: 'brand-collaborations', label: 'Brand Collaborations', icon: '🏢' },
-  { value: 'personal-projects', label: 'Personal Projects', icon: '💡' },
-  { value: 'commercial-work', label: 'Commercial Work', icon: '💼' },
-  { value: 'educational-content', label: 'Educational Content', icon: '🎓' },
-  { value: 'creative-experiments', label: 'Creative Experiments', icon: '🔬' },
+  { value: 'short-form-video',     label: 'Short-Form Video'     },
+  { value: 'long-form-video',      label: 'Long-Form Video'      },
+  { value: 'social-media-content', label: 'Social Media Content' },
+  { value: 'brand-collaborations', label: 'Brand Collaborations' },
+  { value: 'personal-projects',    label: 'Personal Projects'    },
+  { value: 'commercial-work',      label: 'Commercial Work'      },
+  { value: 'educational-content',  label: 'Educational Content'  },
+  { value: 'creative-experiments', label: 'Creative Experiments' },
 ];
 
 const DURATIONS = [
-  { value: 'one-time', label: 'One-Time', description: 'Single projects', icon: '⚡' },
-  { value: 'short-term', label: 'Short-Term', description: '1-3 months', icon: '📅' },
-  { value: 'long-term', label: 'Long-Term', description: '3+ months', icon: '📆' },
-  { value: 'ongoing', label: 'Ongoing', description: 'Continuous collaboration', icon: '🔄' },
+  { value: 'one-time',   label: 'One-Time',   description: 'Single projects'         },
+  { value: 'short-term', label: 'Short-Term', description: '1-3 months'              },
+  { value: 'long-term',  label: 'Long-Term',  description: '3+ months'               },
+  { value: 'ongoing',    label: 'Ongoing',    description: 'Continuous collaboration' },
 ];
 
 const WORK_MODES = [
-  { value: 'remote', label: 'Remote', description: 'Work from anywhere', icon: '🌍' },
-  { value: 'in-person', label: 'In-Person', description: 'Local collaborations', icon: '🏙️' },
-  { value: 'hybrid', label: 'Hybrid', description: 'Flexible approach', icon: '🔀' },
+  { value: 'remote',    label: 'Remote',    description: 'Work from anywhere'   },
+  { value: 'in-person', label: 'In-Person', description: 'Local collaborations' },
+  { value: 'hybrid',    label: 'Hybrid',    description: 'Flexible approach'    },
 ];
 
 export const CollaborationStep = ({ data, onChange }) => {
@@ -46,9 +47,6 @@ export const CollaborationStep = ({ data, onChange }) => {
     data.collaborationPreferences?.workMode || ''
   );
 
-  /**
-   * Handle creator role toggle
-   */
   const handleRoleToggle = (roleId) => {
     setSelectedRoles((prev) =>
       prev.includes(roleId)
@@ -57,18 +55,12 @@ export const CollaborationStep = ({ data, onChange }) => {
     );
   };
 
-  /**
-   * Handle project type toggle
-   */
   const handleProjectTypeToggle = (type) => {
     setSelectedProjectTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
   };
 
-  /**
-   * Sync changes to parent
-   */
   useEffect(() => {
     onChange({
       collaborationPreferences: {
@@ -83,7 +75,6 @@ export const CollaborationStep = ({ data, onChange }) => {
   return (
     <div className="collaboration-step">
       <StepHeader
-        icon="🤝"
         title="Collaboration Style"
         subtitle="How do you like to work with others?"
       />
@@ -91,21 +82,15 @@ export const CollaborationStep = ({ data, onChange }) => {
       {/* Roles to collaborate with */}
       <div className="form-section">
         <h3 className="section-title">Roles You Want to Collaborate With</h3>
-        <p className="section-help">
-          Select the types of creators you want to work with
-        </p>
-
+        <p className="section-help">Select the types of creators you want to work with</p>
         <div className="role-selector-compact">
           {CREATOR_ROLES.map((role) => (
             <button
               key={role.id}
               type="button"
-              className={`role-chip ${
-                selectedRoles.includes(role.id) ? 'selected' : ''
-              }`}
+              className={`role-chip ${selectedRoles.includes(role.id) ? 'selected' : ''}`}
               onClick={() => handleRoleToggle(role.id)}
             >
-              <span className="role-chip-icon">{role.icon}</span>
               <span className="role-chip-label">{role.label}</span>
             </button>
           ))}
@@ -116,17 +101,15 @@ export const CollaborationStep = ({ data, onChange }) => {
       <div className="form-section">
         <h3 className="section-title">Project Types</h3>
         <p className="section-help">What kinds of projects interest you?</p>
-
         <div className="project-types-grid">
           {PROJECT_TYPES.map((type) => (
             <div
               key={type.value}
-              className={`project-type-card ${
-                selectedProjectTypes.includes(type.value) ? 'selected' : ''
-              }`}
+              className={`project-type-card ${selectedProjectTypes.includes(type.value) ? 'selected' : ''}`}
               onClick={() => handleProjectTypeToggle(type.value)}
-              role="button"
+              role="checkbox"
               tabIndex={0}
+              aria-checked={selectedProjectTypes.includes(type.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -134,10 +117,13 @@ export const CollaborationStep = ({ data, onChange }) => {
                 }
               }}
             >
-              <div className="project-type-icon">{type.icon}</div>
               <span className="project-type-label">{type.label}</span>
-              <div className="project-type-checkbox">
-                {selectedProjectTypes.includes(type.value) ? '✓' : ''}
+              <div className="project-type-checkbox" aria-hidden="true">
+                {selectedProjectTypes.includes(type.value) && (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
               </div>
             </div>
           ))}
@@ -147,15 +133,15 @@ export const CollaborationStep = ({ data, onChange }) => {
       {/* Duration */}
       <div className="form-section">
         <h3 className="section-title">Preferred Project Duration</h3>
-
         <div className="option-cards">
           {DURATIONS.map((dur) => (
             <div
               key={dur.value}
               className={`option-card ${duration === dur.value ? 'selected' : ''}`}
               onClick={() => setDuration(dur.value)}
-              role="button"
+              role="radio"
               tabIndex={0}
+              aria-checked={duration === dur.value}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -163,7 +149,6 @@ export const CollaborationStep = ({ data, onChange }) => {
                 }
               }}
             >
-              <div className="option-icon">{dur.icon}</div>
               <h4 className="option-label">{dur.label}</h4>
               <p className="option-description">{dur.description}</p>
             </div>
@@ -174,15 +159,15 @@ export const CollaborationStep = ({ data, onChange }) => {
       {/* Work mode */}
       <div className="form-section">
         <h3 className="section-title">Work Mode</h3>
-
         <div className="option-cards">
           {WORK_MODES.map((mode) => (
             <div
               key={mode.value}
               className={`option-card ${workMode === mode.value ? 'selected' : ''}`}
               onClick={() => setWorkMode(mode.value)}
-              role="button"
+              role="radio"
               tabIndex={0}
+              aria-checked={workMode === mode.value}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -190,7 +175,6 @@ export const CollaborationStep = ({ data, onChange }) => {
                 }
               }}
             >
-              <div className="option-icon">{mode.icon}</div>
               <h4 className="option-label">{mode.label}</h4>
               <p className="option-description">{mode.description}</p>
             </div>

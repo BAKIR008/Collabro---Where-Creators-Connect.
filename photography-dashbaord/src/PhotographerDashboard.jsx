@@ -1,52 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import CustomCursor from './components/CustomCursor.jsx'
 import ToastContainer, { useToast } from './components/ToastSystem.jsx'
+import ProjectForm, { imageFileToDataUrl } from './ProjectForm.jsx'
+import { CreatorDialog, MessagesDialog, ProfileDialog, SettingsDialog } from './DashboardDialogs.jsx'
+import { creators, moodboardReferences, photoUrl, projectsSeed } from './dashboardData.js'
+import { authPageUrl, dashboardApi } from './dashboardApi.js'
+import { createPreviewProject, readPreviewProfile, readPreviewProjects, savePreviewProfile } from './dashboardStorage.js'
 import './PhotographerDashboard.css'
-
-const projectsSeed = [
-  {
-    title: 'Golden hour, unfiltered',
-    type: 'Portrait',
-    status: 'Open',
-    image: 'photo-1534528741775-53994a69daeb',
-    collaborators: ['Maya Chen', 'Leo Park'],
-    need: 'Stylist + MUA',
-  },
-  {
-    title: 'Somewhere in the city',
-    type: 'Editorial',
-    status: 'In progress',
-    image: 'photo-1515886657613-9f3515b0c78f',
-    collaborators: ['Noah Williams'],
-    need: 'Art director',
-  },
-  {
-    title: 'A little more wild',
-    type: 'Nature',
-    status: 'Open',
-    image: 'photo-1470252649378-9c29740c9fa8',
-    collaborators: ['Ava Patel', 'Kai Morgan'],
-    need: 'Videographer',
-  },
-  {
-    title: 'Sunday on film',
-    type: 'Lifestyle',
-    status: 'Open',
-    image: 'photo-1529139574466-a303027c1d8b',
-    collaborators: ['Ella Brooks'],
-    need: 'Model + stylist',
-  },
-]
-
-const creators = [
-  { name: 'Maya Chen', role: 'Fashion stylist', tags: ['Editorial', 'Fashion'], projects: 12, rating: '4.9', image: 'photo-1531123897727-8f129e1688ce' },
-  { name: 'Leo Park', role: 'Videographer', tags: ['Film', 'Travel'], projects: 8, rating: '4.8', image: 'photo-1500648767791-00dcc994a43e' },
-  { name: 'Ava Patel', role: 'Makeup artist', tags: ['Beauty', 'Portrait'], projects: 15, rating: '5.0', image: 'photo-1534528741775-53994a69daeb' },
-  { name: 'Kai Morgan', role: 'Creative director', tags: ['Campaign', 'Art'], projects: 10, rating: '4.9', image: 'photo-1506794778202-cad84cf45f1d' },
-]
-
-const photoUrl = (id, width = 640) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`
 
 function Icon({ name, size = 18 }) {
   const common = {
@@ -86,14 +47,45 @@ function PhotographerDashboard() {
   const navigate = useNavigate()
   const { toasts, addToast, removeToast } = useToast()
   const uploadInput = useRef(null)
-  const [projects, setProjects] = useState(projectsSeed)
+  const searchInput = useRef(null)
+  const profileWrap = useRef(null)
+  const notificationWrap = useRef(null)
+  const [myProjects, setMyProjects] = useState(() => readPreviewProjects().map((item) => ({
+    ...item,
+    type: item.category,
+    image: item.coverImage || 'photo-1492691527719-9d1e07e534b4',
+    need: item.lookingFor || 'Find your team',
+    collaborators: (item.collaborators || []).map((collaborator) => typeof collaborator === 'string' ? collaborator : collaborator.name),
+  })))
   const [query, setQuery] = useState('')
+  const [projectsLoading, setProjectsLoading] = useState(true)
   const [user, setUser] = useState(null)
+  const [authMessage, setAuthMessage] = useState('')
   const [profileOpen, setProfileOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const [projectModalOpen, setProjectModalOpen] = useState(false)
-  const [projectName, setProjectName] = useState('')
-  const [projectType, setProjectType] = useState('Portrait')
+  const [modal, setModal] = useState('')
+  const [projectDraft, setProjectDraft] = useState(null)
+  const [savingProject, setSavingProject] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [showMyProjects, setShowMyProjects] = useState(false)
+  const [selectedCreator, setSelectedCreator] = useState(null)
+  const [favorites, setFavorites] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('collabro-favorites') || '[]') } catch { return [] }
+  })
+  const [requestedProjects, setRequestedProjects] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('collabro-join-requests') || '[]') } catch { return [] }
+  })
+  const [studioProjectId, setStudioProjectId] = useState(projectsSeed[0].id)
+  const [studioTab, setStudioTab] = useState('moodboard')
+  const [shotList, setShotList] = useState([])
+  const [studioNotes, setStudioNotes] = useState('')
+  const [studioInput, setStudioInput] = useState('')
+  const [messages, setMessages] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('collabro-messages') || '[]') } catch { return [] }
+  })
+  const [settings, setSettings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('collabro-settings') || '{"emailUpdates":true,"reduceMotion":false}') } catch { return { emailUpdates: true, reduceMotion: false } }
+  })
 
   useEffect(() => {
     const previousTitle = document.title
@@ -103,20 +95,41 @@ function PhotographerDashboard() {
 
   useEffect(() => {
     let active = true
-    fetch('/api/auth/me', { credentials: 'include' })
-      .then(async (response) => {
-        if (response.status === 401) return null
-        if (!response.ok) throw new Error('We could not load your account details.')
-        const data = await response.json()
-        return data.user
-      })
+    dashboardApi.getUser()
       .then((account) => {
-        if (active && account) setUser(account)
+        if (active) setUser(account)
+        return dashboardApi.getProjects()
+      })
+      .then((items) => {
+        if (active) {
+          setMyProjects(items.map((item) => ({
+            ...item,
+            id: item._id,
+            type: item.category,
+            image: item.coverImage || 'photo-1492691527719-9d1e07e534b4',
+            need: item.lookingFor || 'Find your team',
+            collaborators: (item.collaborators || []).map((collaborator) => typeof collaborator === 'string' ? collaborator : collaborator.name),
+          })))
+        }
       })
       .catch((error) => {
-        if (active) addToast('warning', 'Profile unavailable', error.message, 5000)
+        if (!active) return
+        if (error.status === 401 || !error.status || error.status >= 500) {
+          setUser(readPreviewProfile())
+          setMyProjects(readPreviewProjects().map((item) => ({
+            ...item,
+            type: item.category,
+            image: item.coverImage || 'photo-1492691527719-9d1e07e534b4',
+            need: item.lookingFor || 'Find your team',
+            collaborators: (item.collaborators || []).map((collaborator) => typeof collaborator === 'string' ? collaborator : collaborator.name),
+          })))
+          setAuthMessage(error.status === 401 ? 'Preview mode: sign in to save to your account. Projects on this device are temporary.' : 'Could not reach the account server. Preview projects are saved only in this browser.')
+        } else {
+          setAuthMessage(error.message)
+          addToast('error', 'Projects unavailable', error.message, 5000)
+        }
       })
-
+      .finally(() => { if (active) setProjectsLoading(false) })
     return () => { active = false }
   }, [addToast])
 
@@ -130,13 +143,51 @@ function PhotographerDashboard() {
     return () => document.removeEventListener('error', markUnavailableImage, true)
   }, [])
 
+  useEffect(() => {
+    const closePopovers = (event) => {
+      if (!profileWrap.current?.contains(event.target)) setProfileOpen(false)
+      if (!notificationWrap.current?.contains(event.target)) setNotificationsOpen(false)
+    }
+    const onKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        searchInput.current?.focus()
+      }
+      if (event.key === 'Escape') {
+        setProfileOpen(false)
+        setNotificationsOpen(false)
+        setModal('')
+      }
+    }
+    document.addEventListener('mousedown', closePopovers)
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', closePopovers)
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('collabro-favorites', JSON.stringify(favorites))
+      localStorage.setItem('collabro-join-requests', JSON.stringify(requestedProjects))
+      localStorage.setItem('collabro-messages', JSON.stringify(messages))
+      localStorage.setItem('collabro-settings', JSON.stringify(settings))
+    } catch {
+      addToast('warning', 'Browser storage is full', 'Some local preferences could not be saved.')
+    }
+  }, [favorites, requestedProjects, messages, settings, addToast])
+
+  const allProjects = useMemo(() => [...myProjects, ...projectsSeed], [myProjects])
   const filteredProjects = useMemo(() => {
     const term = query.trim().toLowerCase()
-    if (!term) return projects
-    return projects.filter((project) =>
-      [project.title, project.type, project.status, project.need].some((value) => value.toLowerCase().includes(term))
+    const source = showMyProjects ? myProjects : allProjects
+    if (!term) return source
+    return source.filter((project) =>
+      [project.title, project.description, project.type || project.category, project.status, project.need || project.lookingFor]
+        .some((value) => String(value || '').toLowerCase().includes(term))
     )
-  }, [projects, query])
+  }, [allProjects, myProjects, query, showMyProjects])
 
   const filteredCreators = useMemo(() => {
     const term = query.trim().toLowerCase()
@@ -146,84 +197,198 @@ function PhotographerDashboard() {
     )
   }, [query])
 
-  const firstName = user?.name?.trim().split(/\s+/)[0] || 'Zinal'
-  const profileName = user?.name || 'Zinal Agrawal'
-
-  const createProject = (event) => {
-    event.preventDefault()
-    const title = projectName.trim()
-    if (!title) return
-    setProjects((current) => [{
-      title,
-      type: projectType,
-      status: 'Open',
-      image: 'photo-1492691527719-9d1e07e534b4',
-      collaborators: [],
-      need: 'Find your team',
-    }, ...current])
-    setProjectName('')
-    setProjectModalOpen(false)
-    addToast('success', 'Project created', `${title} is ready for collaborators.`)
+  const firstName = user?.name?.trim().split(/\s+/)[0] || 'creator'
+  const profileName = user?.name || 'Your profile'
+  const openProjectForm = () => {
+    setProjectDraft(null)
+    setModal('project')
   }
 
-  const uploadPhoto = (event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      addToast('error', 'Unsupported file', 'Choose an image file to add it to your portfolio.')
-      event.target.value = ''
-      return
+  const saveProject = async (details) => {
+    setSavingProject(true)
+    try {
+      const created = user?.isLocalPreview || !user
+        ? createPreviewProject(details)
+        : await dashboardApi.createProject(details)
+      const normalized = {
+        ...created,
+        id: created._id || created.id,
+        type: created.category,
+        image: created.coverImage || 'photo-1492691527719-9d1e07e534b4',
+        need: created.lookingFor || 'Find your team',
+        collaborators: (created.collaborators || []).map((person) => person.name),
+      }
+      setMyProjects((current) => [normalized, ...current])
+      setModal('')
+      addToast('success', 'Project created', `${created.title} is ready in your project workspace.`)
+      navigate(`/projects/${created._id || created.id}`)
+    } finally {
+      setSavingProject(false)
     }
-    const image = URL.createObjectURL(file)
-    setProjects((current) => [{
-      title: file.name.replace(/\.[^.]+$/, ''),
-      type: 'New upload',
-      status: 'Just added',
-      image,
-      collaborators: [],
-      need: 'Add project details',
-      isLocal: true,
-    }, ...current])
-    addToast('success', 'Photo uploaded', `${file.name} has been added to your portfolio.`)
+  }
+
+  const uploadPhoto = async (event) => {
+    const file = event.target.files?.[0]
     event.target.value = ''
+    if (!file) return
+    try {
+      const coverImage = await imageFileToDataUrl(file)
+      setProjectDraft({
+        title: file.name.replace(/\.[^.]+$/, ''),
+        category: 'Portrait',
+        status: 'Open',
+        coverImage,
+      })
+      setModal('project')
+    } catch (error) {
+      addToast('error', 'Image could not be added', error.message)
+    }
+  }
+
+  const saveProfile = async (profile) => {
+    setSavingProfile(true)
+    try {
+      const updated = user?.isLocalPreview || !user
+        ? savePreviewProfile(profile)
+        : await dashboardApi.saveProfile(profile)
+      setUser(updated)
+      setModal('')
+      addToast('success', 'Profile updated', 'Your profile has been saved to your account.')
+    } catch (error) {
+      addToast('error', 'Profile was not saved', error.message)
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  const openProfileEditor = () => {
+    setModal('profile')
+    setProfileOpen(false)
+  }
+
+  const toggleFavorite = (name) => {
+    setFavorites((current) => current.includes(name) ? current.filter((item) => item !== name) : [...current, name])
+  }
+
+  const sendMessage = (text) => {
+    const normalizedText = text.trim()
+    if (!normalizedText) return
+    setMessages((current) => [...current, { text: normalizedText, recipient: selectedCreator?.name || 'Collaborators', createdAt: new Date().toISOString() }])
+    addToast('success', 'Message saved', 'Your message is in your local conversation draft.')
   }
 
   const logout = async () => {
+    if (user?.isLocalPreview || !user) {
+      window.location.assign(authPageUrl())
+      return
+    }
     try {
-      const response = await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-      if (!response.ok) throw new Error('Unable to log out. Please try again.')
-      navigate('/login')
+      await dashboardApi.logout()
+      window.location.assign(authPageUrl())
     } catch (error) {
       addToast('error', 'Sign-out failed', error.message)
     }
   }
 
+  const openMyProjects = () => {
+    setShowMyProjects(true)
+    setProfileOpen(false)
+    document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const openSection = (section) => {
+    if (section === 'projects') setShowMyProjects(false)
     document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
+  const addStudioItem = () => {
+    const item = studioInput.trim()
+    if (!item) return
+    if (studioTab === 'shot-list') setShotList((current) => [...current, { title: item, completed: false }])
+    else if (studioTab === 'notes') setStudioNotes((current) => `${current}${current ? '\n' : ''}${item}`)
+    setStudioInput('')
+  }
+
+  const currentStudioProject = allProjects.find((project) => String(project.id || project._id) === String(studioProjectId)) || allProjects[0]
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(`collabro-studio-${studioProjectId}`) || '{}')
+      setShotList(saved.shotList || [])
+      setStudioNotes(saved.notes || '')
+    } catch {
+      setShotList([])
+      setStudioNotes('')
+    }
+  }, [studioProjectId])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`collabro-studio-${studioProjectId}`, JSON.stringify({ shotList, notes: studioNotes }))
+    } catch {
+      addToast('warning', 'Studio draft was not saved', 'Browser storage is full.')
+    }
+  }, [shotList, studioNotes, studioProjectId, addToast])
+
+  const joinProject = (project) => {
+    if (requestedProjects.includes(project.id)) return
+    setRequestedProjects((current) => [...current, project.id])
+    addToast('success', 'Interest saved', `Your interest in “${project.title}” is saved in this browser.`)
+  }
+
+  const showCreator = (creator) => {
+    setSelectedCreator(creator)
+    setModal('creator')
+  }
+
+  const openMessages = () => {
+    setModal('messages')
+    setProfileOpen(false)
+  }
+
+  const openSettings = () => {
+    setModal('settings')
+    setProfileOpen(false)
+  }
+
+  const openNotificationProject = (id) => {
+    setNotificationsOpen(false)
+    navigate(`/projects/${id}`)
+  }
+
+  const openProject = (project) => {
+    navigate(`/projects/${project.id || project._id}`)
+  }
+
+  const makeProjectImage = (project) => {
+    if (project.coverImage) return project.coverImage
+    if (project.image?.startsWith('http')) return project.image
+    return photoUrl(project.image || 'photo-1492691527719-9d1e07e534b4')
+  }
+
   return (
-    <div className="photo-dashboard" id="dashboard">
+    <div className={`photo-dashboard ${settings.reduceMotion ? 'reduced-motion' : ''}`} id="dashboard">
       <CustomCursor />
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <header className="photo-topbar">
-        <a className="photo-brand" href="#dashboard" aria-label="CollaBro home">
+        <Link className="photo-brand" to="/dashboard" aria-label="CollaBro home">
           <span className="photo-brand-name">COLLAB<span>R</span>O</span>
           <span className="photo-brand-tag">THE CREATORS HUB</span>
-        </a>
+        </Link>
         <label className="photo-search">
           <Icon name="discover" size={17} />
           <input
+            ref={searchInput}
             type="search"
             placeholder="Search shoots, creators, projects..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             aria-label="Search shoots, creators, and projects"
           />
-          <kbd>⌘ K</kbd>
+          <kbd>Ctrl/⌘ K</kbd>
         </label>
         <div className="photo-account">
-          <div className="photo-popover-wrap">
+          <div className="photo-popover-wrap" ref={notificationWrap}>
             <button
               className={`photo-icon-button ${notificationsOpen ? 'is-open' : ''}`}
               aria-label="Notifications"
@@ -235,16 +400,19 @@ function PhotographerDashboard() {
             </button>
             {notificationsOpen && (
               <div className="photo-popover photo-notifications">
-                <div className="photo-popover-heading">You’re all caught up <span>2 new</span></div>
-                <p><b>Maya Chen</b> wants to join <em>Golden hour, unfiltered</em>.</p>
-                <p><b>Leo Park</b> sent you a collaboration request.</p>
-                <button onClick={() => { setNotificationsOpen(false); openSection('projects') }}>View project activity <Icon name="arrow" size={14} /></button>
+                <div className="photo-popover-heading">Activity <span>{requestedProjects.length} saved</span></div>
+                {requestedProjects.length ? requestedProjects.map((id) => {
+                  const project = projectsSeed.find((item) => item.id === id)
+                  return project ? <button key={id} onClick={() => openNotificationProject(id)}>You saved interest in “{project.title}” <Icon name="arrow" size={14} /></button> : null
+                }) : <p>You’re all caught up. New project activity will appear here.</p>}
+                <button onClick={() => { setNotificationsOpen(false); openMyProjects() }}>View your projects <Icon name="arrow" size={14} /></button>
               </div>
             )}
           </div>
-          <div className="photo-popover-wrap">
+          <div className="photo-popover-wrap" ref={profileWrap}>
             <button
               className="photo-profile-button"
+              aria-label={`Open profile for ${profileName}`}
               aria-expanded={profileOpen}
               onClick={() => { setProfileOpen((open) => !open); setNotificationsOpen(false) }}
             >
@@ -254,25 +422,31 @@ function PhotographerDashboard() {
             </button>
             {profileOpen && (
               <div className="photo-popover photo-profile-menu">
+                <img className="photo-menu-avatar" src={user?.profilePicture || photoUrl('photo-1534528741775-53994a69daeb', 96)} alt="" />
                 <strong>{profileName}</strong>
-                <span>Photographer · Creator profile</span>
-                <button onClick={() => addToast('info', 'Profile settings', 'Profile editing is coming soon.')}>Edit profile</button>
-                <button onClick={logout}>Sign out</button>
+                <span>{user?.username ? `@${user.username}` : user?.creatorRole || 'Creator'} · {user?.role || 'Creator'}</span>
+                {user?.bio && <p>{user.bio}</p>}
+                {user?.skills?.length > 0 && <small>Skills: {user.skills.join(', ')}</small>}
+                {user?.interests?.length > 0 && <small>Interests: {user.interests.join(', ')}</small>}
+                <button onClick={openProfileEditor}>Edit profile</button>
+                <button onClick={openMyProjects}>My projects</button>
+                <button onClick={openSettings}>Settings</button>
+                <button onClick={logout}>Log out</button>
               </div>
             )}
           </div>
         </div>
       </header>
+      {!user && <div className="photo-account-notice" role="status">{authMessage || 'Preview mode: sign in to save projects to your account.'} <a href={authPageUrl()}>Sign in</a></div>}
 
       <div className="photo-layout">
         <aside className="photo-sidebar">
           <nav aria-label="Main navigation">
-            <a className="photo-nav-item is-active" href="#dashboard"><Icon name="home" /> Home</a>
+            <Link className="photo-nav-item is-active" to="/dashboard" onClick={() => setShowMyProjects(false)}><Icon name="home" /> Home</Link>
             <button className="photo-nav-item" onClick={() => openSection('creators')}><Icon name="discover" /> Discover</button>
-            <button className="photo-nav-item" onClick={() => openSection('projects')}><Icon name="projects" /> My Projects</button>
-            <button className="photo-nav-item" onClick={() => addToast('info', 'Messages', 'Your creator inbox is ready for its first conversation.')}><Icon name="message" /> Messages <span className="photo-nav-count">2</span></button>
+            <button className="photo-nav-item" onClick={openMyProjects}><Icon name="projects" /> My Projects</button>
+            <button className="photo-nav-item" onClick={openMessages}><Icon name="message" /> Messages <span className="photo-nav-count">{messages.length || ''}</span></button>
             <button className="photo-nav-item" onClick={() => { setNotificationsOpen(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }}><Icon name="bell" /> Notifications</button>
-            <button className="photo-nav-item" onClick={() => openSection('creators')}><Icon name="community" /> Community</button>
           </nav>
           <div className="photo-sidebar-note">
             <div className="photo-sticker" aria-hidden="true"><span /><i /></div>
@@ -291,9 +465,6 @@ function PhotographerDashboard() {
               <div className="photo-eyebrow"><span /> HEY {firstName.toUpperCase()}, YOUR PHOTOGRAPHY STUDIO</div>
               <h1>SHOOT.<br /><mark>CONNECT.</mark><br /><i>CREATE</i> STORIES.</h1>
               <p>Find your next muse, build a dream team, and bring the ideas in your camera roll to life.</p>
-              <button className="photo-button photo-button-yellow" onClick={() => setProjectModalOpen(true)}>
-                <Icon name="plus" size={17} /> START A PROJECT <Icon name="arrow" size={16} />
-              </button>
               <div className="photo-hero-badges" aria-label="Project types">
                 <span className="photo-badge badge-purple"><Icon name="camera" size={14} /> Editorial</span>
                 <span className="photo-badge badge-yellow"><Icon name="sparkle" size={14} /> Portraits</span>
@@ -302,11 +473,11 @@ function PhotographerDashboard() {
             </div>
             <div className="photo-hero-art">
               <div className="photo-hero-photo photo-hero-photo-back">
-                <img src={photoUrl('photo-1531058020387-3be344556be6', 720)} alt="Creative photo shoot" />
+                <img src={photoUrl('photo-1531058020387-3be344556be6', 720)} alt="Colorful creative event captured during a photo shoot" fetchPriority="low" />
                 <span className="photo-film-label">FRAME 001 · 35MM</span>
               </div>
               <div className="photo-hero-photo photo-hero-photo-front">
-                <img src={photoUrl('photo-1524504388940-b1c1722653e1', 520)} alt="Portrait from a golden-hour photo shoot" />
+                <img src={photoUrl('photo-1524504388940-b1c1722653e1', 520)} alt="Portrait from a golden-hour photo shoot" fetchPriority="high" />
                 <span className="photo-live"><i /> LIVE SHOOT</span>
               </div>
               <div className="photo-collab-note"><span className="photo-avatar-stack"><img src={photoUrl('photo-1534528741775-53994a69daeb', 60)} alt="" /><img src={photoUrl('photo-1500648767791-00dcc994a43e', 60)} alt="" /><img src={photoUrl('photo-1531123897727-8f129e1688ce', 60)} alt="" /></span><span><b>4 creators</b><small>making something good</small></span><Icon name="sparkle" size={20} /></div>
@@ -316,51 +487,61 @@ function PhotographerDashboard() {
           </section>
 
           <div className="photo-section-heading" id="projects">
-            <div><span className="photo-eyebrow">YOUR LATEST WORK</span><h2>Featured shoots</h2></div>
-            <button className="photo-text-link" onClick={() => addToast('info', 'Your portfolio', 'All of your photography projects will live here.')}>View portfolio <Icon name="arrow" size={15} /></button>
+            <div><span className="photo-eyebrow">{showMyProjects ? 'YOUR PROJECT WORKSPACE' : 'YOUR LATEST WORK'}</span><h2>{showMyProjects ? 'My projects' : 'Featured shoots'}</h2></div>
+            {!showMyProjects && <button className="photo-text-link" onClick={openMyProjects}>View my projects <Icon name="arrow" size={15} /></button>}
           </div>
           <section className="photo-project-grid" aria-label="Featured photography projects">
+            {projectsLoading && showMyProjects ? <div className="photo-empty-state">Loading your projects…</div> : null}
+            {showMyProjects && !projectsLoading && !myProjects.length ? <div className="photo-empty-state">You haven’t created a project yet. Start with your next idea.</div> : null}
             {filteredProjects.length ? filteredProjects.map((project, index) => (
-              <article className="photo-project-card" key={`${project.title}-${index}`}>
+              <article className="photo-project-card" key={project.id || project._id || `${project.title}-${index}`}>
                 <div className="photo-project-image">
-                  <img src={project.image.startsWith('blob:') ? project.image : photoUrl(project.image)} alt={project.title} />
-                  <span className={`photo-project-type type-${(project.type || '').toLowerCase().replace(/\s+/g, '-')}`}>{project.type}</span>
-                  <button className="photo-save-button" aria-label={`Save ${project.title}`} onClick={() => addToast('success', 'Saved to favorites', project.title)}><Icon name="heart" size={15} /></button>
+                  <img
+                    src={makeProjectImage(project)}
+                    alt={`${project.type} photography: ${project.title}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span className={`photo-project-type type-${(project.type || '').toLowerCase().replace(/\s+/g, '-')}`}>{project.type || project.category}</span>
+                  {!project._id && !project.isLocalPreview && <button className={`photo-save-button ${favorites.includes(project.id) ? 'is-saved' : ''}`} aria-label={`${favorites.includes(project.id) ? 'Unsave' : 'Save'} ${project.title}`} aria-pressed={favorites.includes(project.id)} onClick={() => toggleFavorite(project.id)}><Icon name="heart" size={15} /></button>}
                 </div>
                 <div className="photo-project-info">
                   <div className="photo-project-title"><h3>{project.title}</h3><span className={project.status === 'In progress' ? 'status-purple' : 'status-green'}>{project.status}</span></div>
-                  <p>Looking for: <b>{project.need}</b></p>
+                  <p>Looking for: <b>{project.need || project.lookingFor || 'Find your team'}</b></p>
                   <div className="photo-project-footer">
-                    <span className="photo-mini-avatars">{project.collaborators.length ? project.collaborators.map((name, avatarIndex) => <img key={name} src={photoUrl(['photo-1534528741775-53994a69daeb', 'photo-1500648767791-00dcc994a43e', 'photo-1531123897727-8f129e1688ce'][avatarIndex % 3], 48)} alt="" />) : <span className="photo-avatar-empty"><Icon name="plus" size={11} /></span>}</span>
-                    <button onClick={() => addToast('success', 'You’re on the list', `We’ll let you know when ${project.title} gets a match.`)}>Join shoot <Icon name="arrow" size={14} /></button>
+                    <span className="photo-mini-avatars">{project.collaborators?.length ? project.collaborators.map((name, avatarIndex) => <img key={`${name}-${avatarIndex}`} src={photoUrl(['photo-1534528741775-53994a69daeb', 'photo-1500648767791-00dcc994a43e', 'photo-1531123897727-8f129e1688ce'][avatarIndex % 3], 48)} alt="" />) : <span className="photo-avatar-empty"><Icon name="plus" size={11} /></span>}</span>
+                    <div className="photo-project-card-actions">
+                      <button onClick={() => openProject(project)}>Open project <Icon name="arrow" size={14} /></button>
+                      {!project._id && !project.isLocalPreview && <button className="photo-project-join" onClick={() => joinProject(project)} disabled={requestedProjects.includes(project.id)}>{requestedProjects.includes(project.id) ? 'Interest saved' : 'Join shoot'}</button>}
+                    </div>
                   </div>
                 </div>
               </article>
-            )) : <div className="photo-empty-state">No shoots match “{query}”. Try a different search.</div>}
+            )) : !projectsLoading && (!showMyProjects || myProjects.length > 0) ? <div className="photo-empty-state">No shoots match “{query}”. Try a different search.</div> : null}
           </section>
 
           <div className="photo-section-heading photo-creators-heading" id="creators">
             <div><span className="photo-eyebrow">PEOPLE TO MAKE THINGS WITH</span><h2>Creators to know</h2></div>
-            <button className="photo-text-link" onClick={() => addToast('info', 'Creator directory', 'More photographers, stylists, and artists are on the way.')}>Meet the community <Icon name="arrow" size={15} /></button>
+            <button className="photo-text-link" onClick={() => { setQuery(''); openSection('creators') }}>Meet the community <Icon name="arrow" size={15} /></button>
           </div>
           <section className="photo-creator-grid" aria-label="Recommended creative collaborators">
             {filteredCreators.length ? filteredCreators.map((creator) => (
               <article className="photo-creator-card" key={creator.name}>
-                <div className="photo-creator-top"><img src={photoUrl(creator.image, 120)} alt="" /><span className="photo-creator-presence" /><button aria-label={`Favorite ${creator.name}`} onClick={() => addToast('success', 'Creator saved', `${creator.name} was added to your favorites.`)}><Icon name="heart" size={15} /></button></div>
+                <div className="photo-creator-top"><img src={photoUrl(creator.image, 120)} alt={`${creator.name}, ${creator.role}`} loading="lazy" decoding="async" /><span className="photo-creator-presence" /><button className={favorites.includes(creator.name) ? 'is-saved' : ''} aria-label={`${favorites.includes(creator.name) ? 'Unfavorite' : 'Favorite'} ${creator.name}`} aria-pressed={favorites.includes(creator.name)} onClick={() => toggleFavorite(creator.name)}><Icon name="heart" size={15} /></button></div>
                 <h3>{creator.name}</h3>
                 <p>{creator.role}</p>
                 <div className="photo-creator-tags">{creator.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
                 <div className="photo-creator-stats"><span><Icon name="projects" size={13} /> {creator.projects} projects</span><span>★ {creator.rating}</span></div>
-                <button className="photo-creator-connect" onClick={() => addToast('success', 'Request sent', `${creator.name} will hear from you soon.`)}>Connect <Icon name="arrow" size={14} /></button>
+                <div className="photo-creator-actions"><button className="photo-creator-connect" onClick={() => { setSelectedCreator(creator); setModal('messages') }}>Connect <Icon name="arrow" size={14} /></button><button className="photo-creator-view" onClick={() => showCreator(creator)}>View profile</button></div>
               </article>
             )) : <div className="photo-empty-state">No creators match “{query}”. Try a different search.</div>}
           </section>
 
-          <section className="photo-bottom-banner" id="messages">
+          <section className="photo-bottom-banner" id="invite">
             <div className="photo-banner-shape" aria-hidden="true" />
             <span className="photo-eyebrow">YOUR NEXT GREAT FRAME IS A TEAM EFFORT</span>
             <h2>MAKE SOMETHING<br />WORTH <mark>REMEMBERING.</mark></h2>
-            <button className="photo-button photo-button-yellow" onClick={() => setProjectModalOpen(true)}>CREATE A SHOOT <Icon name="arrow" size={16} /></button>
+            <button className="photo-button photo-button-yellow" onClick={openProjectForm}>CREATE A SHOOT <Icon name="arrow" size={16} /></button>
             <span className="photo-banner-spark" aria-hidden="true">✳</span>
           </section>
           <footer className="photo-footer">Made for the makers, the muses &amp; the moments in between. <span>COLLABRO © {new Date().getFullYear()}</span></footer>
@@ -369,55 +550,42 @@ function PhotographerDashboard() {
         <aside className="photo-right-rail">
           <section className="photo-quick-actions">
             <div className="photo-rail-title"><h2>QUICK ACTIONS</h2><Icon name="sparkle" size={18} /></div>
-            <button className="photo-action-primary" onClick={() => setProjectModalOpen(true)}><Icon name="plus" /> Create a project <Icon name="arrow" size={15} /></button>
             <button onClick={() => uploadInput.current?.click()}><Icon name="upload" /> Upload a shoot <Icon name="arrow" size={15} /></button>
             <button onClick={() => openSection('creators')}><Icon name="community" /> Find collaborators <Icon name="arrow" size={15} /></button>
-            <button onClick={() => addToast('info', 'Open calls', 'New creative briefs and opportunities are coming soon.')}><Icon name="sparkle" /> Explore opportunities <Icon name="arrow" size={15} /></button>
+            <button onClick={() => { setShowMyProjects(false); setQuery('Open'); openSection('projects') }}><Icon name="sparkle" /> Explore open shoots <Icon name="arrow" size={15} /></button>
             <input ref={uploadInput} className="photo-visually-hidden" type="file" accept="image/*" onChange={uploadPhoto} aria-label="Upload a photo" />
           </section>
 
           <section className="photo-studio-panel">
             <div className="photo-studio-header"><h2>PHOTO STUDIO</h2><span>● READY</span></div>
-            <label className="photo-project-select">CURRENT PROJECT <select aria-label="Current project">{projects.map((project, index) => <option key={`${project.title}-${index}`}>{project.title}</option>)}</select></label>
-            <div className="photo-studio-tabs"><button className="selected"><Icon name="camera" size={15} /> Moodboard</button><button onClick={() => addToast('info', 'Shot list', 'Plan the perfect shot list for your next session.')}><Icon name="projects" size={15} /> Shot list</button><button onClick={() => addToast('info', 'Notes', 'Keep ideas and references together with your team.')}><Icon name="message" size={15} /> Notes</button></div>
-            <div className="photo-moodboard">
-              <img src={photoUrl('photo-1515886657613-9f3515b0c78f', 340)} alt="Editorial fashion moodboard reference" />
-              <div><b>MOODBOARD · 04</b><p>Soft light. Honest moments. A little bit of golden hour.</p></div>
+            <label className="photo-project-select">CURRENT PROJECT <select aria-label="Current project" value={studioProjectId} onChange={(event) => setStudioProjectId(event.target.value)}>{allProjects.map((project) => <option key={project.id || project._id} value={project.id || project._id}>{project.title}</option>)}</select></label>
+            <div className="photo-studio-tabs">
+              <button className={studioTab === 'moodboard' ? 'selected' : ''} onClick={() => setStudioTab('moodboard')}><Icon name="camera" size={15} /> Moodboard</button>
+              <button className={studioTab === 'shot-list' ? 'selected' : ''} onClick={() => setStudioTab('shot-list')}><Icon name="projects" size={15} /> Shot list</button>
+              <button className={studioTab === 'notes' ? 'selected' : ''} onClick={() => setStudioTab('notes')}><Icon name="message" size={15} /> Notes</button>
             </div>
+            {studioTab === 'moodboard' ? <div className="photo-moodboard">
+              <img src={makeProjectImage(currentStudioProject)} alt={`${currentStudioProject?.title || 'Project'} moodboard cover`} loading="lazy" decoding="async" />
+              <div className="photo-moodboard-references" aria-label="Moodboard references">
+                {moodboardReferences.map((reference) => <figure key={reference.label}><img src={photoUrl(reference.image, 180)} alt={reference.label} loading="lazy" decoding="async" /><figcaption>{reference.label}</figcaption></figure>)}
+              </div>
+              <div><b>{currentStudioProject?.title || 'MOODBOARD'}</b><p>{currentStudioProject?.description || 'Soft light. Honest moments. A little bit of golden hour.'}</p></div>
+            </div> : studioTab === 'shot-list' ? <div className="photo-studio-editable">
+              {shotList.length ? <ul>{shotList.map((shot, index) => <li key={`${shot.title}-${index}`}><label><input type="checkbox" checked={shot.completed} onChange={() => setShotList((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, completed: !item.completed } : item))} /><span className={shot.completed ? 'is-complete' : ''}>{shot.title}</span></label><button aria-label={`Remove ${shot.title}`} onClick={() => setShotList((current) => current.filter((_, itemIndex) => itemIndex !== index))}>×</button></li>)}</ul> : <p>Add the first frame to your shot list.</p>}
+              <div className="photo-studio-add"><input value={studioInput} onChange={(event) => setStudioInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addStudioItem() } }} placeholder="e.g. Wide establishing shot" aria-label="New shot" /><button onClick={addStudioItem}>Add</button></div>
+            </div> : <div className="photo-studio-editable"><textarea value={studioNotes} onChange={(event) => setStudioNotes(event.target.value)} placeholder="Add a location, lighting plan, or creative note…" aria-label="Photo studio notes" /><div className="photo-studio-add"><input value={studioInput} onChange={(event) => setStudioInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addStudioItem() } }} placeholder="Add a quick note" aria-label="Quick note" /><button onClick={addStudioItem}>Add</button></div></div>}
             <div className="photo-studio-tip"><Icon name="sparkle" size={16} /><div><b>A little inspiration</b><p>Try shooting through something — a window, a veil, a rainy windshield.</p></div><Icon name="arrow" size={14} /></div>
-            <div className="photo-studio-footer"><button onClick={() => addToast('success', 'Draft saved', 'Your moodboard is saved for this session.')}>Save draft</button><button onClick={() => addToast('success', 'Invite link copied', 'Your shoot invite is ready to share.')}>Invite team <Icon name="community" size={14} /></button></div>
+            <div className="photo-studio-footer"><button onClick={() => addToast('success', 'Studio draft saved', 'Your moodboard, shot list, and notes are saved in this browser.')}>Save draft</button></div>
           </section>
 
-          <section className="photo-weekly-card">
-            <div className="photo-weekly-icon"><Icon name="camera" size={19} /></div>
-            <span className="photo-eyebrow">YOUR WEEK IN FRAMES</span>
-            <strong>6,240</strong>
-            <p>people discovered your work this week</p>
-            <div className="photo-weekly-chart" aria-label="Views rising through the week">
-              {[24, 39, 31, 52, 43, 67, 56, 84, 71, 100, 78, 92].map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}
-            </div>
-            <span className="photo-weekly-growth">↗ 18% from last week</span>
-          </section>
         </aside>
       </div>
 
-      {projectModalOpen && (
-        <div className="photo-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setProjectModalOpen(false) }}>
-          <form className="photo-project-modal" onSubmit={createProject} role="dialog" aria-modal="true" aria-labelledby="new-project-title">
-            <button type="button" className="photo-modal-close" aria-label="Close" onClick={() => setProjectModalOpen(false)}><Icon name="close" size={19} /></button>
-            <span className="photo-eyebrow">MAKE ROOM FOR A NEW IDEA</span>
-            <h2 id="new-project-title">Start a project</h2>
-            <p>Give your shoot a name and we’ll help you find the right creative team.</p>
-            <label htmlFor="project-name">PROJECT NAME</label>
-            <input id="project-name" autoFocus maxLength={60} placeholder="e.g. Golden hour portraits" value={projectName} onChange={(event) => setProjectName(event.target.value)} required />
-            <label htmlFor="project-type">PROJECT TYPE</label>
-            <select id="project-type" value={projectType} onChange={(event) => setProjectType(event.target.value)}>
-              <option>Portrait</option><option>Editorial</option><option>Lifestyle</option><option>Nature</option><option>Campaign</option>
-            </select>
-            <button type="submit" className="photo-button photo-button-yellow">CREATE PROJECT <Icon name="arrow" size={16} /></button>
-          </form>
-        </div>
-      )}
+      {modal === 'project' && <ProjectForm initialProject={projectDraft} saving={savingProject} onClose={() => setModal('')} onSave={saveProject} />}
+      {modal === 'profile' && <ProfileDialog user={user} saving={savingProfile} onClose={() => setModal('')} onSave={saveProfile} />}
+      {modal === 'settings' && <SettingsDialog settings={settings} setSettings={setSettings} onClose={() => setModal('')} />}
+      {modal === 'messages' && <MessagesDialog creator={selectedCreator} messages={messages} onSend={sendMessage} onClose={() => setModal('')} />}
+      {modal === 'creator' && <CreatorDialog creator={selectedCreator} onClose={() => setModal('')} onConnect={() => setModal('messages')} />}
     </div>
   )
 }

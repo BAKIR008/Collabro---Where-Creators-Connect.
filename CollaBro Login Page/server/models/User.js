@@ -29,6 +29,22 @@ const userSchema = new mongoose.Schema(
         'Please provide a valid email address',
       ],
     },
+    username: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      minlength: [3, 'Username must be at least 3 characters'],
+      maxlength: [30, 'Username cannot exceed 30 characters'],
+      match: [/^[a-z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'],
+      unique: true,
+      sparse: true,
+    },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Bio cannot exceed 500 characters'],
+      default: '',
+    },
     hashedPassword: {
       type: String,
       select: false,                             // never returned in queries by default
@@ -47,6 +63,10 @@ const userSchema = new mongoose.Schema(
     profilePicture: {
       type: String,
       default: null,
+    },
+    interests: {
+      type: [String],
+      default: [],
     },
     role: {
       type: String,
@@ -129,12 +149,17 @@ userSchema.methods.toPublic = function () {
   return {
     id: this._id,
     name: this.name,
+    username: this.username,
+    bio: this.bio,
+    interests: this.interests,
     email: this.email,
     profilePicture: this.profilePicture,
     role: this.role,
     providers: this.providers,
     isEmailVerified: this.isEmailVerified,
     createdAt: this.createdAt,
+    onboardingCompleted: this.onboarding?.status === 'completed',
+    onboardingStatus: this.onboarding?.status || 'not_started',
   };
 };
 

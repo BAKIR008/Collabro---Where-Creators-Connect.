@@ -11,6 +11,12 @@ import './DashboardPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// Roles that have dedicated dashboards (separate apps / routes)
+const ROLE_ROUTES = {
+  'photographer': '/photographer-dashboard',
+  'script-writer': '/script-dashboard',
+};
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading, logout } = useAuth();
@@ -18,20 +24,32 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState(null);
 
   /**
-   * Check onboarding status and redirect if not completed
+   * Guard: not authenticated → /login, onboarding incomplete → /onboarding
+   * If onboarding is complete and role has a dedicated dashboard, redirect there.
    */
   useEffect(() => {
-    if (!authLoading && !onboardingLoading) {
-      if (!user) {
-        navigate('/login');
-      } else if (status?.status !== 'completed') {
-        navigate('/onboarding');
-      }
+    if (authLoading || onboardingLoading) return;
+
+    if (!user) {
+      navigate('/login', { replace: true });
+      return;
+    }
+
+    if (status?.status !== 'completed') {
+      navigate('/onboarding', { replace: true });
+      return;
+    }
+
+    // Role-aware redirect: if user has a role with a dedicated dashboard, send them there.
+    // We read primaryRole from the user object (populated by /me).
+    const primaryRole = user?.primaryRole;
+    if (primaryRole && ROLE_ROUTES[primaryRole]) {
+      navigate(ROLE_ROUTES[primaryRole], { replace: true });
     }
   }, [user, status, authLoading, onboardingLoading, navigate]);
 
   /**
-   * Fetch creator profile
+   * Fetch creator profile for display
    */
   useEffect(() => {
     const fetchProfile = async () => {

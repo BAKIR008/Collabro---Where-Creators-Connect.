@@ -7,12 +7,8 @@ import Navbar from './components/Navbar'
 import HeroSection from './components/HeroSection'
 import MarqueeStrip from './components/MarqueeStrip'
 import ProblemSection from './components/ProblemSection'
-import HowItWorksSection from './components/HowItWorksSection'
-import EcosystemSection from './components/EcosystemSection'
 import DiscoverySection from './components/DiscoverySection'
-import CollabRequestSection from './components/CollabRequestSection'
-import ProfileShowcaseSection from './components/ProfileShowcaseSection'
-import BentoGridSection from './components/BentoGridSection'
+import WorkflowSection from './components/WorkflowSection'
 import FinalCTASection from './components/FinalCTASection'
 import Footer from './components/Footer'
 
@@ -72,12 +68,8 @@ export default function App() {
           <HeroSection />
           <MarqueeStrip />
           <ProblemSection />
-          <HowItWorksSection />
-          <EcosystemSection />
           <DiscoverySection />
-          <CollabRequestSection />
-          <ProfileShowcaseSection />
-          <BentoGridSection />
+          <WorkflowSection />
           <FinalCTASection />
         </main>
 

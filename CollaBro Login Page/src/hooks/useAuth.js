@@ -23,9 +23,7 @@ export const useAuth = () => {
       const response = await fetch(`${API_URL}/api/auth/me`, {
         method: 'GET',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
 
       if (response.ok) {
@@ -57,9 +55,7 @@ export const useAuth = () => {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
@@ -81,20 +77,18 @@ export const useAuth = () => {
   }, []);
 
   /**
-   * Signup
+   * Signup — endpoint is /api/auth/register
    */
-  const signup = useCallback(async (email, password, username) => {
+  const signup = useCallback(async (email, password, name) => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`${API_URL}/api/auth/signup`, {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, username }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
       });
 
       const data = await response.json();
@@ -125,9 +119,7 @@ export const useAuth = () => {
       await fetch(`${API_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
 
       setUser(null);
@@ -142,7 +134,7 @@ export const useAuth = () => {
   }, []);
 
   /**
-   * Refresh user data
+   * Refresh user data from server
    */
   const refreshUser = useCallback(async () => {
     return await checkAuth();
@@ -160,6 +152,8 @@ export const useAuth = () => {
     loading,
     error,
     isAuthenticated: !!user,
+    // Derived onboarding flag — populated by /me endpoint which reads User.onboarding.status
+    onboardingCompleted: user?.onboardingCompleted === true,
     login,
     signup,
     logout,

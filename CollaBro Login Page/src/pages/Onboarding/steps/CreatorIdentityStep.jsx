@@ -80,7 +80,6 @@ export const CreatorIdentityStep = ({ data, onChange }) => {
   return (
     <div className="creator-identity-step">
       <StepHeader
-        icon="👤"
         title="Who Are You?"
         subtitle="Tell us about yourself and your creative identity"
       />
@@ -139,7 +138,11 @@ export const CreatorIdentityStep = ({ data, onChange }) => {
         <p className="selection-count">
           {selectedRoles.length} / {MAX_ROLES} selected
           {selectedRoles.length >= MIN_ROLES && primaryRole && (
-            <span className="valid-indicator"> ✓</span>
+            <span className="valid-indicator" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
           )}
         </p>
       </div>

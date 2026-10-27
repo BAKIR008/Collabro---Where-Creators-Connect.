@@ -8,3 +8,5 @@ export { ProgressBar } from './ProgressBar.jsx';
 export { RoleCard } from './RoleCard.jsx';
 export { NavigationButtons } from './NavigationButtons.jsx';
 export { StepHeader } from './StepHeader.jsx';
+export { SelectableCard } from './SelectableCard.jsx';
+export { FileUpload } from './FileUpload.jsx';

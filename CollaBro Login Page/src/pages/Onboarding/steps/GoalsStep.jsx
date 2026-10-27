@@ -7,42 +7,49 @@ import React, { useState, useEffect } from 'react';
 import { StepHeader } from '../components';
 import './GoalsStep.css';
 
+/* SVG check mark used in the valid-indicator and checkbox */
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
 const GOAL_OPTIONS = [
   {
     value: 'find-collaborators',
     label: 'Find Collaborators',
     description: 'Connect with other creators for projects',
-    icon: '🤝',
+    abbr: 'FC',
   },
   {
     value: 'build-portfolio',
     label: 'Build Portfolio',
     description: 'Showcase my work and grow my presence',
-    icon: '📁',
+    abbr: 'BP',
   },
   {
     value: 'learn-skills',
     label: 'Learn New Skills',
     description: 'Expand my creative abilities',
-    icon: '📚',
+    abbr: 'LS',
   },
   {
     value: 'earn-income',
     label: 'Earn Income',
     description: 'Monetize my creative work',
-    icon: '💰',
+    abbr: 'EI',
   },
   {
     value: 'network',
     label: 'Network',
     description: 'Connect with like-minded creators',
-    icon: '🌐',
+    abbr: 'NW',
   },
   {
     value: 'get-discovered',
     label: 'Get Discovered',
     description: 'Increase visibility and opportunities',
-    icon: '⭐',
+    abbr: 'GD',
   },
 ];
 
@@ -78,7 +85,6 @@ export const GoalsStep = ({ data, onChange }) => {
   return (
     <div className="goals-step">
       <StepHeader
-        icon="🎯"
         title="Your Goals"
         subtitle="What are you looking to achieve on CollaBro?"
       />
@@ -88,7 +94,9 @@ export const GoalsStep = ({ data, onChange }) => {
         <p className="selection-count">
           {selectedGoals.length} selected
           {selectedGoals.length >= 1 && (
-            <span className="valid-indicator"> ✓</span>
+            <span className="valid-indicator" aria-hidden="true">
+              <CheckIcon />
+            </span>
           )}
         </p>
       </div>
@@ -101,8 +109,10 @@ export const GoalsStep = ({ data, onChange }) => {
               selectedGoals.includes(goal.value) ? 'selected' : ''
             }`}
             onClick={() => handleGoalToggle(goal.value)}
-            role="button"
+            role="checkbox"
             tabIndex={0}
+            aria-checked={selectedGoals.includes(goal.value)}
+            aria-label={goal.label}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -110,11 +120,11 @@ export const GoalsStep = ({ data, onChange }) => {
               }
             }}
           >
-            <div className="goal-icon">{goal.icon}</div>
+            <div className="goal-abbr" aria-hidden="true">{goal.abbr}</div>
             <h3 className="goal-label">{goal.label}</h3>
             <p className="goal-description">{goal.description}</p>
-            <div className="goal-checkbox">
-              {selectedGoals.includes(goal.value) ? '✓' : ''}
+            <div className="goal-checkbox" aria-hidden="true">
+              {selectedGoals.includes(goal.value) && <CheckIcon />}
             </div>
           </div>
         ))}

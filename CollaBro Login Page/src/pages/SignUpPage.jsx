@@ -8,6 +8,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CustomCursor from '../components/CustomCursor.jsx'
 import ToastContainer, { useToast } from '../components/ToastSystem.jsx'
+import { getDashboardPath } from '../config/dashboardRoutes.js'
 
 /* ─────────────────────────────────────────────────
    Eye SVG icons for password toggle
@@ -79,67 +80,72 @@ function validateConfirmPassword(password, confirmPassword) {
 }
 
 /* ─────────────────────────────────────────────────
-   Left Panel — decorative feature list (same as login)
+   Creative Jokes Panel — left decorative panel
+   Rotates through witty observations about creative work.
 ───────────────────────────────────────────────── */
+const JOKES = [
+  { line: "A script is never finished.\nOnly abandoned to a deadline.", attr: "Every writer, eventually" },
+  { line: "Client: \"Can you make it pop?\"\nWriter: deletes 40 pages", attr: "Revision #3" },
+  { line: "Writer's block:\nwhen your cursor blinks\nfaster than your ideas.", attr: "The blank page, mocking" },
+  { line: "The first draft is just you\ntelling yourself the story.", attr: "Terry Pratchett" },
+  { line: "Revision #7:\nthe \"this is basically\na different script\" edit.", attr: "Every creative ever" },
+  { line: "Deadline: noun.\nThe only known cure\nfor perfectionism.", attr: "CollaBro Dictionary" },
+  { line: "Good work takes time.\nGreat work takes\none more pass.", attr: "The eternal truth" },
+]
+
 function LeftPanel() {
+  const [idx, setIdx] = useState(0)
+  const [visible, setVisible] = useState(true)
+  const prefersReduced = useRef(
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  )
+
+  const goTo = useCallback((next) => {
+    setVisible(false)
+    setTimeout(() => { setIdx(next); setVisible(true) }, 260)
+  }, [])
+
+  useEffect(() => {
+    if (prefersReduced.current) return
+    const t = setInterval(() => goTo((p) => (p + 1) % JOKES.length), 5000)
+    return () => clearInterval(t)
+  }, [goTo])
+
+  const joke = JOKES[idx]
   return (
     <div className="login-panel-left">
       <div className="left-grid-bg" aria-hidden="true" />
       <div className="left-glow-1" aria-hidden="true" />
       <div className="left-glow-2" aria-hidden="true" />
       <div className="left-glow-3" aria-hidden="true" />
-
-      {/* Brand */}
       <div className="left-brand">
-        <div className="left-wordmark">
-          COLLAB<span className="accent">R</span>O
-        </div>
+        <div className="left-wordmark">COLLAB<span className="accent">R</span>O</div>
         <div className="left-tagline">The Creators Hub</div>
       </div>
-
-      {/* Feature cards */}
-      <div className="left-features" aria-hidden="true">
-        <div className="left-feature-card">
-          <div className="feature-icon feature-icon-yellow">🤝</div>
-          <div className="feature-text">
-            <h4>Find Collaborators</h4>
-            <p>Discover creators who match your vision</p>
-          </div>
+      <div className="left-joke-area" aria-live="polite" aria-atomic="true">
+        <div className={`left-joke-card${visible ? ' lj-visible' : ' lj-hidden'}`}>
+          <div className="lj-quote-mark">"</div>
+          <blockquote className="lj-text">
+            {joke.line.split('\n').map((seg, i) => (
+              <span key={i}>{seg}{i < joke.line.split('\n').length - 1 && <br />}</span>
+            ))}
+          </blockquote>
+          <div className="lj-attr">— {joke.attr}</div>
         </div>
-        <div className="left-feature-card">
-          <div className="feature-icon feature-icon-cyan">🚀</div>
-          <div className="feature-text">
-            <h4>Launch Projects</h4>
-            <p>Turn ideas into real-world products</p>
-          </div>
-        </div>
-        <div className="left-feature-card">
-          <div className="feature-icon feature-icon-magenta">✨</div>
-          <div className="feature-text">
-            <h4>Build Together</h4>
-            <p>The community that ships real things</p>
-          </div>
-        </div>
+        <nav className="lj-dots" aria-label="Joke navigation">
+          {JOKES.map((_, i) => (
+            <button key={i} className={`lj-dot${i === idx ? ' lj-dot-active' : ''}`}
+              aria-label={`Joke ${i + 1}`} aria-current={i === idx ? 'true' : undefined}
+              onClick={() => goTo(i)} />
+          ))}
+        </nav>
       </div>
-
-      {/* Stats */}
-      <div className="left-stats">
-        <div className="left-stat">
-          <div className="left-stat-number" style={{ color: 'var(--yellow)' }}>12K+</div>
-          <div className="left-stat-label">Creators</div>
-        </div>
-        <div className="left-stat">
-          <div className="left-stat-number" style={{ color: 'var(--cyan)' }}>3K+</div>
-          <div className="left-stat-label">Projects</div>
-        </div>
-        <div className="left-stat">
-          <div className="left-stat-number" style={{ color: 'var(--magenta)' }}>95%</div>
-          <div className="left-stat-label">Satisfaction</div>
-        </div>
-      </div>
+      <div className="left-bottom-note">Where creative work gets done.</div>
     </div>
   )
 }
+
 
 /* ─────────────────────────────────────────────────
    Main Sign Up Page
@@ -209,10 +215,10 @@ export default function SignUpPage() {
         throw new Error(data.message || 'Registration failed.')
       }
 
-      addToast('success', 'Account Created! 🎉', `Welcome to CollaBro, ${data.user.name}!`, 3000)
+      addToast('success', 'Account Created! 🎉', `Welcome to CollaBro, ${data.user.name}! Let's set up your profile.`, 3000)
 
-      // Short delay for toast visibility, then redirect
-      setTimeout(() => navigate('/dashboard'), 1200)
+      // New users always need onboarding
+      setTimeout(() => navigate('/onboarding'), 1200)
     } catch (err) {
       const message = err.message || 'Something went wrong. Please try again.'
 
@@ -253,8 +259,25 @@ export default function SignUpPage() {
         throw new Error(data.message || 'Google authentication failed.')
       }
 
-      addToast('success', 'Google sign-up successful! 🎉', `Welcome to CollaBro, ${data.user.name}!`, 3000)
-      setTimeout(() => navigate('/dashboard'), 1200)
+      // Check onboarding status
+      const statusRes = await fetch('/api/onboarding/status', {
+        credentials: 'include',
+      })
+
+      if (statusRes.ok) {
+        const statusData = await statusRes.json()
+        if (statusData.onboarding?.status === 'completed') {
+          addToast('success', 'Google sign-in successful! 🎉', `Welcome back, ${data.user.name}!`, 3000)
+          setTimeout(() => navigate(getDashboardPath(statusData.onboarding), { replace: true }), 1200)
+        } else {
+          addToast('success', 'Google sign-up successful! Let\'s set up your profile 🚀', `Welcome to CollaBro, ${data.user.name}!`, 3000)
+          setTimeout(() => navigate('/onboarding'), 1200)
+        }
+      } else {
+        // If status check fails, default to onboarding for safety (likely new user)
+        addToast('success', 'Google sign-up successful! 🎉', `Welcome to CollaBro, ${data.user.name}!`, 3000)
+        setTimeout(() => navigate('/onboarding'), 1200)
+      }
     } catch (err) {
       const message = err.message || 'Google authentication failed. Please try again.'
       setGlobalError(message)

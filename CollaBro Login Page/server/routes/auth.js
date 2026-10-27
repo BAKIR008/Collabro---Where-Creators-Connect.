@@ -2,13 +2,15 @@
  * CollaBro — Auth Routes
  * server/routes/auth.js
  *
- * POST /api/auth/register     — Email + Password registration
- * POST /api/auth/login        — Email + Password login
- * POST /api/auth/google       — Google OAuth login/register with account linking
- * POST /api/auth/logout       — Logout (clear cookie)
- * GET  /api/auth/me           — Get current user (protected)
- * POST /api/auth/forgot-password     — Request password reset
- * POST /api/auth/reset-password      — Reset password with token
+ * POST /api/auth/register             — Email + Password registration
+ * POST /api/auth/login                — Email + Password login
+ * POST /api/auth/google               — Google OAuth login/register with account linking
+ * POST /api/auth/logout               — Logout (clear cookie)
+ * GET  /api/auth/me                   — Get current user (protected)
+ * PATCH /api/auth/profile             — Update display name / bio (protected)
+ * POST /api/auth/profile/picture      — Upload profile picture (multipart, protected)
+ * POST /api/auth/forgot-password      — Request password reset
+ * POST /api/auth/reset-password       — Reset password with token
  */
 
 import express from 'express';
@@ -17,11 +19,14 @@ import { body, validationResult } from 'express-validator';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
 import User from '../models/User.js';
+import CreatorProfile from '../models/CreatorProfile.js';
 import { signToken, setTokenCookie, clearTokenCookie } from '../utils/jwt.js';
 import { protect } from '../middleware/auth.js';
 import { sendPasswordResetEmail } from '../utils/email.js';
+import { avatarUpload, avatarPublicUrl } from '../utils/upload.js';
 
 const router = express.Router();
+
 
 /* ─── Strict rate limiter for auth attempts ─── */
 const authLimiter = rateLimit({
@@ -337,12 +342,81 @@ router.post('/logout', (req, res) => {
    GET /api/auth/me
    Protected — returns current user info
 ───────────────────────────────────────────────── */
-router.get('/me', protect, (req, res) => {
-  return res.json({
-    success: true,
-    user: req.user.toPublic(),
-  });
+router.get('/me', protect, async (req, res) => {
+  try {
+    const userWithOnboarding = await User.findById(req.user._id).select('onboarding');
+    const profile = await CreatorProfile.findOne({ user: req.user._id }).select('primaryRole accountType skills bio displayName');
+    return res.json({
+      success: true,
+      user: {
+        ...req.user.toPublic(),
+        onboardingCompleted: userWithOnboarding?.onboarding?.status === 'completed',
+        onboardingStatus: userWithOnboarding?.onboarding?.status || 'not_started',
+        primaryRole: profile?.primaryRole || null,
+        accountType: profile?.accountType || null,
+        skills: profile?.skills || [],
+      },
+    });
+  } catch (err) {
+    console.error('[Get Profile Error]', err);
+    return res.status(500).json({ success: false, message: 'Could not load your profile.' });
+  }
 });
+
+router.patch(
+  '/profile',
+  protect,
+  [
+    body('name').optional().trim().isLength({ min: 3, max: 50 }),
+    body('username').optional({ values: 'falsy' }).trim().matches(/^[a-zA-Z0-9_]{3,30}$/),
+    body('bio').optional().trim().isLength({ max: 500 }),
+    body('profilePicture').optional().trim().isLength({ max: 2048 }),
+    body('skills').optional().isArray({ max: 30 }),
+    body('skills.*').optional().trim().isLength({ min: 1, max: 50 }),
+    body('interests').optional().isArray({ max: 30 }),
+    body('interests.*').optional().trim().isLength({ min: 1, max: 50 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Please check the profile details and try again.', errors: errors.array() });
+    }
+
+    try {
+      const { name, username, bio, profilePicture, skills, interests } = req.body;
+      if (name !== undefined) req.user.name = name;
+      if (username !== undefined) req.user.username = username || undefined;
+      if (bio !== undefined) req.user.bio = bio;
+      if (profilePicture !== undefined) req.user.profilePicture = profilePicture || null;
+      await req.user.save();
+
+      let profile = null;
+      if (skills !== undefined || interests !== undefined) {
+        profile = await CreatorProfile.findOne({ user: req.user._id });
+        if (skills !== undefined && profile) profile.skills = skills;
+        if (profile) await profile.save({ validateBeforeSave: false });
+      } else {
+        profile = await CreatorProfile.findOne({ user: req.user._id }).select('primaryRole accountType skills');
+      }
+
+      return res.json({
+        success: true,
+        user: {
+          ...req.user.toPublic(),
+          primaryRole: profile?.primaryRole || null,
+          accountType: profile?.accountType || null,
+          skills: profile?.skills || [],
+        },
+      });
+    } catch (err) {
+      console.error('[Update Profile Error]', err);
+      if (err.code === 11000) {
+        return res.status(409).json({ success: false, message: 'That username is already in use.' });
+      }
+      return res.status(500).json({ success: false, message: 'Could not save your profile.' });
+    }
+  }
+);
 
 /* ─────────────────────────────────────────────────
    POST /api/auth/forgot-password
@@ -531,6 +605,121 @@ router.post(
         success: false,
         message: 'Server error. Please try again later.',
       });
+    }
+  }
+);
+
+
+/* ─────────────────────────────────────────────────
+   POST /api/auth/profile/picture
+   Upload / replace user's profile picture.
+   Accepts multipart/form-data with field name "picture".
+   Max size: 5 MB. Allowed types: JPEG, PNG, WebP, GIF.
+───────────────────────────────────────────────── */
+router.post(
+  '/profile/picture',
+  protect,
+  (req, res, next) => {
+    // Run multer middleware inline so we can return proper JSON errors
+    avatarUpload.single('picture')(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          message: err.message || 'File upload failed.',
+        });
+      }
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No image file provided.' });
+      }
+
+      const publicUrl = avatarPublicUrl(req.file.filename);
+
+      // Delete old local file if it exists (cleanup on replace)
+      const user = await User.findById(req.user._id).select('profilePicture');
+      if (user?.profilePicture && user.profilePicture.startsWith('/uploads/')) {
+        const { default: fs } = await import('fs');
+        const { default: path } = await import('path');
+        const { fileURLToPath } = await import('url');
+        const __dir = path.dirname(fileURLToPath(import.meta.url));
+        const oldPath = path.join(__dir, '..', user.profilePicture);
+        if (fs.existsSync(oldPath)) {
+          try { fs.unlinkSync(oldPath); } catch (_) { /* non-fatal */ }
+        }
+      }
+
+      await User.findByIdAndUpdate(req.user._id, { profilePicture: publicUrl });
+
+      return res.json({
+        success: true,
+        profilePicture: publicUrl,
+        message: 'Profile picture updated successfully.',
+      });
+    } catch (err) {
+      console.error('[Profile Picture Upload Error]', err);
+      return res.status(500).json({ success: false, message: 'Server error. Please try again.' });
+    }
+  }
+);
+
+/* ─────────────────────────────────────────────────
+   PATCH /api/auth/profile
+   Update text-based profile fields: displayName, bio, profileTitle.
+   These are stored in CreatorProfile but surfaced via /me.
+───────────────────────────────────────────────── */
+router.patch(
+  '/profile',
+  protect,
+  [
+    body('displayName').optional().isString().trim().isLength({ max: 100 })
+      .withMessage('Display name must be 100 characters or fewer.'),
+    body('bio').optional().isString().trim().isLength({ max: 500 })
+      .withMessage('Bio must be 500 characters or fewer.'),
+    body('profileTitle').optional().isString().trim().isLength({ max: 100 })
+      .withMessage('Profile title must be 100 characters or fewer.'),
+    body('name').optional().isString().trim().isLength({ min: 1, max: 100 })
+      .withMessage('Name must be between 1 and 100 characters.'),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed.',
+          errors: errors.array(),
+        });
+      }
+
+      const { displayName, bio, profileTitle, name } = req.body;
+
+      // Update User.name if provided
+      if (name !== undefined) {
+        await User.findByIdAndUpdate(req.user._id, { name });
+      }
+
+      // Update CreatorProfile text fields
+      if (displayName !== undefined || bio !== undefined || profileTitle !== undefined) {
+        const updates = {};
+        if (displayName !== undefined) updates.displayName = displayName;
+        if (bio !== undefined) updates.bio = bio;
+        if (profileTitle !== undefined) updates.profileTitle = profileTitle;
+
+        await CreatorProfile.findOneAndUpdate(
+          { user: req.user._id },
+          { $set: updates },
+          { upsert: false, new: true }
+        );
+      }
+
+      return res.json({ success: true, message: 'Profile updated successfully.' });
+    } catch (err) {
+      console.error('[Profile Update Error]', err);
+      return res.status(500).json({ success: false, message: 'Server error. Please try again.' });
     }
   }
 );

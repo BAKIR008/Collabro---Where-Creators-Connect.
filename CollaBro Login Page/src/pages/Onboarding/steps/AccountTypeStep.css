@@ -1,109 +1,328 @@
 /**
  * AccountTypeStep Styles
+ * Two-column welcome + account-type selection layout
  */
 
+/* ── Fade in ── */
 .account-type-step {
-  animation: fadeIn 0.3s ease-in;
+  animation: accountTypeFadeIn 0.35s ease-out;
 }
 
-.option-cards {
+@keyframes accountTypeFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Two-column wrapper ── */
+.ob-welcome {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+  min-height: 520px;
 }
 
-.option-card {
-  position: relative;
-  background-color: var(--bg-primary);
-  border: 3px solid var(--border-primary);
-  border-radius: 12px;
-  padding: 2rem 1.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+@media (max-width: 860px) {
+  .ob-welcome {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    min-height: unset;
+  }
+}
+
+/* ─── Left Panel ─── */
+.ob-welcome-left {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 1rem;
+  gap: 32px;
+  padding: 8px 0;
 }
 
-.option-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 0 var(--border-primary);
+.ob-welcome-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.option-card:active {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 0 var(--border-primary);
-}
-
-.option-card.selected {
-  border-color: var(--accent-magenta);
-  background-color: rgba(255, 61, 154, 0.05);
-}
-
-.option-icon {
-  font-size: 3.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.option-label {
+.ob-welcome-wordmark {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.75rem;
-  color: var(--text-primary);
-  margin: 0;
-  letter-spacing: 0.5px;
+  font-size: 48px;
+  letter-spacing: 0.06em;
+  color: #0B0B0B;
+  line-height: 1;
 }
 
-.option-description {
+.ob-welcome-wordmark span {
+  color: #E8C547;
+}
+
+.ob-welcome-tagline {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin: 0;
-  flex-grow: 1;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: #6b6560;
+  text-transform: uppercase;
 }
 
-.option-checkbox {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
-  border: 2px solid var(--border-primary);
+.ob-welcome-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ob-welcome-headline {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(32px, 5vw, 52px);
+  letter-spacing: 0.04em;
+  color: #0B0B0B;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.hl-yellow  { color: #E8C547; }
+.hl-cyan    { color: #47B5E8; }
+.hl-magenta { color: #E847A8; }
+
+.ob-welcome-desc {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  color: #6b6560;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.ob-welcome-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ob-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.ob-pill-yellow  { background: rgba(232,197,71,0.18);  color: #9a7e00; border: 1.5px solid rgba(232,197,71,0.4);  }
+.ob-pill-cyan    { background: rgba(71,181,232,0.18);  color: #0076aa; border: 1.5px solid rgba(71,181,232,0.4);  }
+.ob-pill-magenta { background: rgba(232,71,168,0.18);  color: #a0005e; border: 1.5px solid rgba(232,71,168,0.4);  }
+
+.ob-welcome-stats {
+  display: flex;
+  gap: 24px;
+  padding-top: 8px;
+}
+
+.ob-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ob-stat-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.05em;
+  color: #0B0B0B;
+  line-height: 1;
+}
+
+.ob-stat-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: #6b6560;
+  font-weight: 500;
+}
+
+/* ─── Right Panel ─── */
+.ob-welcome-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: #FFFDF6;
+  border: 2.5px solid #0B0B0B;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 6px 6px 0 #0B0B0B;
+}
+
+.ob-welcome-question {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.04em;
+  color: #0B0B0B;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.ob-welcome-sub {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: #6b6560;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ─── Account Type Cards ─── */
+.ob-type-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ob-type-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: #F7F2E8;
+  border: 2.5px solid #d4cdc4;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  position: relative;
+}
+
+.ob-type-card:hover {
+  border-color: #0B0B0B;
+  background: #FFFDF6;
+}
+
+.ob-type-card.selected {
+  border-color: #0B0B0B;
+  background: #FFFDF6;
+  box-shadow: 4px 4px 0 #0B0B0B;
+}
+
+.ob-type-card-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0B0B0B;
+  color: #FFFDF6;
+  border-radius: 10px;
+}
+
+.ob-type-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ob-type-card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  color: #0B0B0B;
+  margin: 0;
+}
+
+.ob-type-card-desc {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: #6b6560;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.ob-type-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.ob-type-tag {
+  padding: 2px 10px;
+  background: rgba(11,11,11,0.08);
+  border: 1px solid rgba(11,11,11,0.15);
+  border-radius: 100px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0B0B0B;
+  letter-spacing: 0.03em;
+}
+
+.ob-type-card.selected .ob-type-tag {
+  background: rgba(11,11,11,0.12);
+}
+
+/* ─── Radio check circle ─── */
+.ob-type-card-check {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid #d4cdc4;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-  background-color: var(--bg-primary);
-  transition: all 0.2s ease;
+  transition: border-color 0.18s, background 0.18s;
+  margin-top: 2px;
 }
 
-.option-card.selected .option-checkbox {
-  background-color: var(--accent-magenta);
-  border-color: var(--accent-magenta);
-  color: var(--text-primary);
+.ob-type-card.selected .ob-type-card-check {
+  border-color: #0B0B0B;
+  background: #0B0B0B;
 }
 
-/* Animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.ob-type-card-check-inner {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #FFFDF6;
+  opacity: 0;
+  transition: opacity 0.18s;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .option-cards {
-    grid-template-columns: 1fr;
-  }
+.ob-type-card.selected .ob-type-card-check-inner {
+  opacity: 1;
+}
 
-  .option-card {
-    padding: 1.5rem;
-  }
+/* ─── CTA Button ─── */
+.ob-welcome-cta-btn {
+  width: 100%;
+  padding: 16px;
+  background: #0B0B0B;
+  color: #FFFDF6;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 3px solid #0B0B0B;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.1s;
+  box-shadow: 4px 4px 0 #0B0B0B;
+  margin-top: 4px;
+}
+
+.ob-welcome-cta-btn:hover:not(:disabled) {
+  box-shadow: 6px 6px 0 #0B0B0B;
+  transform: translate(-1px, -1px);
+}
+
+.ob-welcome-cta-btn:active:not(:disabled) {
+  box-shadow: 2px 2px 0 #0B0B0B;
+  transform: translate(1px, 1px);
+}
+
+.ob-welcome-cta-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
 }

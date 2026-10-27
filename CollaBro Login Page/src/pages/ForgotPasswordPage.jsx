@@ -3,8 +3,8 @@
  * Request password reset link
  */
 
-import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import CustomCursor from '../components/CustomCursor.jsx'
 import ToastContainer, { useToast } from '../components/ToastSystem.jsx'
 
@@ -28,55 +28,76 @@ function validateEmail(value) {
   return ''
 }
 
+/* ─────────────────────────────────────────────────
+   Creative Jokes Panel — left decorative panel
+───────────────────────────────────────────────── */
+const JOKES = [
+  { line: "A script is never finished.\nOnly abandoned to a deadline.", attr: "Every writer, eventually" },
+  { line: "Client: \"Can you make it pop?\"\nWriter: deletes 40 pages", attr: "Revision #3" },
+  { line: "Writer's block:\nwhen your cursor blinks\nfaster than your ideas.", attr: "The blank page, mocking" },
+  { line: "The first draft is just you\ntelling yourself the story.", attr: "Terry Pratchett" },
+  { line: "Revision #7:\nthe \"this is basically\na different script\" edit.", attr: "Every creative ever" },
+  { line: "Deadline: noun.\nThe only known cure\nfor perfectionism.", attr: "CollaBro Dictionary" },
+  { line: "Good work takes time.\nGreat work takes\none more pass.", attr: "The eternal truth" },
+]
+
 function LeftPanel() {
+  const [idx, setIdx] = useState(0)
+  const [visible, setVisible] = useState(true)
+  const prefersReduced = useRef(
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  )
+  const goTo = useCallback((next) => {
+    setVisible(false)
+    setTimeout(() => { setIdx(next); setVisible(true) }, 260)
+  }, [])
+  useEffect(() => {
+    if (prefersReduced.current) return
+    const t = setInterval(() => goTo((p) => (p + 1) % JOKES.length), 5000)
+    return () => clearInterval(t)
+  }, [goTo])
+  const joke = JOKES[idx]
   return (
     <div className="login-panel-left">
       <div className="left-grid-bg" aria-hidden="true" />
       <div className="left-glow-1" aria-hidden="true" />
       <div className="left-glow-2" aria-hidden="true" />
       <div className="left-glow-3" aria-hidden="true" />
-
       <div className="left-brand">
-        <div className="left-wordmark">
-          COLLAB<span className="accent">R</span>O
-        </div>
+        <div className="left-wordmark">COLLAB<span className="accent">R</span>O</div>
         <div className="left-tagline">The Creators Hub</div>
       </div>
-
-      <div className="left-features" aria-hidden="true">
-        <div className="left-feature-card">
-          <div className="feature-icon feature-icon-yellow">🔐</div>
-          <div className="feature-text">
-            <h4>Secure Recovery</h4>
-            <p>Reset your password safely and securely</p>
-          </div>
+      <div className="left-joke-area" aria-live="polite" aria-atomic="true">
+        <div className={`left-joke-card${visible ? ' lj-visible' : ' lj-hidden'}`}>
+          <div className="lj-quote-mark">"</div>
+          <blockquote className="lj-text">
+            {joke.line.split('\n').map((seg, i) => (
+              <span key={i}>{seg}{i < joke.line.split('\n').length - 1 && <br />}</span>
+            ))}
+          </blockquote>
+          <div className="lj-attr">— {joke.attr}</div>
         </div>
-        <div className="left-feature-card">
-          <div className="feature-icon feature-icon-cyan">⚡</div>
-          <div className="feature-text">
-            <h4>Quick Process</h4>
-            <p>Get back to creating in minutes</p>
-          </div>
-        </div>
-        <div className="left-feature-card">
-          <div className="feature-icon feature-icon-magenta">✉️</div>
-          <div className="feature-text">
-            <h4>Email Link</h4>
-            <p>Check your inbox for reset instructions</p>
-          </div>
-        </div>
+        <nav className="lj-dots" aria-label="Joke navigation">
+          {JOKES.map((_, i) => (
+            <button key={i} className={`lj-dot${i === idx ? ' lj-dot-active' : ''}`}
+              aria-label={`Joke ${i + 1}`} aria-current={i === idx ? 'true' : undefined}
+              onClick={() => goTo(i)} />
+          ))}
+        </nav>
       </div>
+      <div className="left-bottom-note">Where creative work gets done.</div>
     </div>
   )
 }
 
+
 export default function ForgotPasswordPage() {
   const navigate = useNavigate()
-  const location = useLocation()
   const { toasts, addToast, removeToast } = useToast()
 
-  const [email, setEmail] = useState(location.state?.email || '')
-  const [touched, setTouched] = useState(!!location.state?.email)
+  const [email, setEmail] = useState('')
+  const [touched, setTouched] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
 

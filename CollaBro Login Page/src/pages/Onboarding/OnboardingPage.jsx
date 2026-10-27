@@ -4,8 +4,9 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useOnboarding } from '../../hooks/useOnboarding.js';
+import { getDashboardPath } from '../../config/dashboardRoutes.js';
 import {
   getConfig,
   getStepIds,
@@ -31,8 +32,13 @@ import CustomCursor from '../../components/CustomCursor.jsx';
 
 export const OnboardingPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // editMode: set when user navigates here from the "Edit Profile" button in the dashboard
+  const editMode = location.state?.editMode === true;
+
   const {
     responses,
+    status,
     loading,
     saving,
     saveDraft,
@@ -44,8 +50,8 @@ export const OnboardingPage = () => {
   const accountType = formData.accountType || 'freelancer'; // Default for config
   const stepIds = getStepIds(accountType);
   
-  // Try to recover current step from DB or start at first step
-  const [currentStepId, setCurrentStepId] = useState('account-type');
+  // In edit mode, start at the review step so users can see and edit their profile
+  const [currentStepId, setCurrentStepId] = useState(editMode ? 'review' : 'account-type');
   const [validationErrors, setValidationErrors] = useState({});
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -66,13 +72,13 @@ export const OnboardingPage = () => {
   const isLastStep = currentStepIndex === stepIds.length - 1;
 
   /**
-   * Redirect if already completed
+   * Redirect if already completed — but not in edit mode (user deliberately came here to edit)
    */
   useEffect(() => {
-    if (isCompleted) {
-      navigate('/dashboard');
+    if (isCompleted && !editMode) {
+      navigate(getDashboardPath(status || responses), { replace: true });
     }
-  }, [isCompleted, navigate]);
+  }, [isCompleted, navigate, editMode, status, responses]);
 
   /**
    * Load saved responses into form data
@@ -146,17 +152,14 @@ export const OnboardingPage = () => {
         break;
 
       case 'expertise':
-        if (!formData.roles || formData.roles.length === 0) {
-          errors.roles = 'Please select at least one role';
-        }
         if (!formData.primaryRole) {
-          errors.primaryRole = 'Please select a primary role';
+          errors.primaryRole = 'Please select your primary role';
         }
         if (!formData.experienceLevel) {
           errors.experienceLevel = 'Please select your experience level';
         }
         if (!formData.skills || formData.skills.length === 0) {
-          errors.skills = 'Please add at least one skill';
+          errors.skills = 'Please select at least one skill';
         }
         break;
 
@@ -165,7 +168,13 @@ export const OnboardingPage = () => {
           if (!formData.goals || formData.goals.length === 0) {
             errors.goals = 'Please select at least one goal';
           }
-          if (!formData.workMode) {
+          if (!formData.collaborationPreferences?.projectTypes || formData.collaborationPreferences.projectTypes.length === 0) {
+            errors.projectTypes = 'Please select at least one project type';
+          }
+          if (!formData.collaborationPreferences?.duration) {
+            errors.duration = 'Please select a project duration';
+          }
+          if (!formData.collaborationPreferences?.workMode) {
             errors.workMode = 'Please select a work mode';
           }
           if (!formData.workStyle) {
@@ -232,17 +241,46 @@ export const OnboardingPage = () => {
 
   /**
    * Handle complete onboarding
+   * After completion, route based on accountType + primaryRole
    */
   const handleComplete = async () => {
     if (!validateCurrentStep()) {
       return;
     }
 
-    const result = await completeOnboarding(formData);
+    // If user uploaded a profile picture in step 2, save it now
+    if (formData.profileImage instanceof File) {
+      try {
+        const imgForm = new FormData();
+        imgForm.append('picture', formData.profileImage);
+        await fetch('/api/auth/profile/picture', {
+          method: 'POST',
+          credentials: 'include',
+          body: imgForm,
+        });
+      } catch (err) {
+        console.error('[Profile Picture Upload Failed]', err);
+      }
+    }
+
+    // Prepare payload: map primaryRole to collaborationPreferences.creatorRoles for freelancers
+    const payload = { ...formData };
+    delete payload.profileImage;
+    delete payload.profileImagePreview;
+
+    if (payload.accountType !== 'client' && payload.primaryRole) {
+      payload.collaborationPreferences = {
+        ...(payload.collaborationPreferences || {}),
+        creatorRoles: [payload.primaryRole],
+      };
+    }
+
+    const result = await completeOnboarding(payload);
+
     if (result.success) {
-      navigate('/dashboard');
+      navigate(getDashboardPath(formData), { replace: true });
     } else {
-      setValidationErrors({ server: result.message || 'Failed to complete onboarding' });
+      setValidationErrors({ server: result.message || 'Failed to complete onboarding. Please try again.' });
     }
   };
 
@@ -267,7 +305,7 @@ export const OnboardingPage = () => {
         return <GoalsPreferencesStep data={formData} onChange={handleStepChange} />;
 
       case 'review':
-        return <ReviewStep data={formData} />;
+        return <ReviewStep data={formData} onNavigateToStep={setCurrentStepId} />;
 
       default:
         return <div>Unknown step</div>;
@@ -293,7 +331,7 @@ export const OnboardingPage = () => {
       <OnboardingLayout>
       <div className="onboarding-page">
         {toastMessage && (
-          <div style={{ position: 'fixed', top: '20px', right: '20px', background: '#a855f7', color: 'white', padding: '1rem', borderRadius: '8px', zIndex: 1000 }}>
+          <div className="ob-toast">
             {toastMessage}
           </div>
         )}
@@ -312,10 +350,10 @@ export const OnboardingPage = () => {
 
         {/* Validation Errors */}
         {Object.keys(validationErrors).length > 0 && (
-          <div className="validation-errors" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255, 68, 68, 0.1)', borderLeft: '4px solid #ff4444' }}>
+          <div className="validation-errors">
             {Object.values(validationErrors).map((error, index) => (
-              <p key={index} className="error-message" style={{ color: '#ff4444', margin: '0.25rem 0' }}>
-                ⚠️ {error}
+              <p key={index} className="error-message">
+                {error}
               </p>
             ))}
           </div>

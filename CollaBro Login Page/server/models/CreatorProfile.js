@@ -1,12 +1,14 @@
 /**
  * CollaBro — Creator Profile Model
  * server/models/CreatorProfile.js
- * 
+ *
  * Stores creator-specific information from onboarding survey.
  * One profile per user (1:1 relationship with User model).
+ * primaryRole is a single string from the 5 supported roles.
  */
 
 import mongoose from 'mongoose';
+import { VALID_ROLE_IDS } from '../utils/creatorRoles.js';
 
 const creatorProfileSchema = new mongoose.Schema(
   {
@@ -17,115 +19,85 @@ const creatorProfileSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
+    // 'freelancer' or 'client'
     accountType: {
       type: String,
-      enum: ['client', 'freelancer'],
-    },
-    displayName: {
-      type: String,
+      enum: ['freelancer', 'client'],
       required: true,
-      trim: true,
-      maxlength: 100,
-    },
-    profileTitle: {
-      type: String,
-      trim: true,
-      maxlength: 100,
     },
     bio: {
       type: String,
-      maxlength: 500,
-    },
-    education: {
-      type: String,
-      maxlength: 200,
-    },
-    github: {
-      type: String,
-      match: [/^https:\/\/github\.com\/.+/, 'Invalid GitHub URL'],
-    },
-    linkedin: {
-      type: String,
-      match: [/^https:\/\/(www\.)?linkedin\.com\/.+/, 'Invalid LinkedIn URL'],
-    },
-    resume: {
-      originalName: String,
-      mimeType: String,
-      size: Number,
-      url: String,
-      uploadedAt: Date,
-    },
-    company: {
-      type: String,
       trim: true,
-      maxlength: 100,
+      maxlength: [500, 'Bio cannot exceed 500 characters'],
+      default: '',
     },
-    clientNeeds: [{
-      type: String,
-      enum: ['find-freelancers','build-team','hire-for-project','find-skills','explore-creators']
-    }],
+    // Freelancer-only fields
     primaryRole: {
       type: String,
-      enum: ['video-editor', 'content-creator', 'thumbnail-maker', 'script-writer', 'photographer'],
-      index: true,
+      enum: {
+        values: [...VALID_ROLE_IDS, null],
+        message: 'Invalid role: {VALUE}',
+      },
+      default: null,
     },
-    roles: [{
-      type: String,
-      enum: ['video-editor', 'content-creator', 'thumbnail-maker', 'script-writer', 'photographer'],
-    }],
     skills: [{
       type: String,
       maxlength: [50, 'Skill name cannot exceed 50 characters'],
     }],
     experienceLevel: {
       type: String,
-      enum: ['beginner', 'intermediate', 'advanced', 'expert', 'professional'],
+      enum: ['beginner', 'intermediate', 'advanced', 'expert'],
+      default: null,
     },
+    tools: [{
+      type: String,
+      maxlength: [50, 'Tool name cannot exceed 50 characters'],
+    }],
     goals: [{
       type: String,
       enum: [
         'find-collaborators',
-        'find-projects',
-        'find-clients',
         'build-portfolio',
-        'showcase-work',
-        'get-discovered',
-        'grow-network',
-        'find-teams',
         'learn-skills',
         'earn-income',
+        'network',
+        'get-discovered',
       ],
     }],
-    workMode: {
-      type: String,
-      enum: ['remote', 'hybrid', 'on-site'],
-    },
-    workStyle: {
-      type: String,
-      enum: ['flexible', 'structured', 'fast-paced', 'long-term', 'short-term'],
-    },
     collaborationPreferences: {
-      creatorRoles: [{
-        type: String,
-      }],
+      creatorRoles: [{ type: String }],
       projectTypes: [{
         type: String,
         maxlength: [50, 'Project type cannot exceed 50 characters'],
       }],
       duration: {
         type: String,
-        enum: ['one-time', 'short-term', 'long-term', 'ongoing', 'flexible'],
+        enum: ['one-time', 'short-term', 'long-term', 'ongoing'],
+      },
+      workMode: {
+        type: String,
+        enum: ['remote', 'in-person', 'hybrid'],
       },
     },
+    workPreferences: {
+      categories: [{ type: String, maxlength: [50] }],
+      industries: [{ type: String, maxlength: [50] }],
+      style: [{ type: String, maxlength: [50] }],
+    },
+    // Client-only fields
+    clientNeeds: [{ type: String }],
+    company: { type: String, maxlength: [100], default: '' },
+    profileTitle: { type: String, maxlength: [100], default: '' },
+    displayName: { type: String, maxlength: [100], default: '' },
   },
   {
     timestamps: true,
   }
 );
 
-// Index for efficient queries
+// Indexes for efficient queries
 creatorProfileSchema.index({ primaryRole: 1, createdAt: -1 });
-creatorProfileSchema.index({ roles: 1 });
+creatorProfileSchema.index({ accountType: 1 });
 
 const CreatorProfile = mongoose.model('CreatorProfile', creatorProfileSchema);
 export default CreatorProfile;
