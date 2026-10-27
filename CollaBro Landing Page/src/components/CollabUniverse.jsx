@@ -426,7 +426,7 @@ export default function CollabUniverse({ isHero = true }) {
 
   return (
     <Canvas
-      camera={{ position: [0, 0.5, 6], fov: 55 }}
+      camera={{ position: [0, 0.5, 6], fov: isHero ? 55 : 42 }}
       gl={{ antialias: true, alpha: true }}
       dpr={[1, Math.min(window.devicePixelRatio, 2)]}
       style={{ background: 'transparent', width: '100%', height: '100%' }}

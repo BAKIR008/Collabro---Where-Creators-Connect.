@@ -17,44 +17,93 @@ const creatorProfileSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
-    primaryRole: {
+    accountType: {
+      type: String,
+      enum: ['client', 'freelancer'],
+    },
+    displayName: {
       type: String,
       required: true,
+      trim: true,
+      maxlength: 100,
+    },
+    profileTitle: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+    },
+    bio: {
+      type: String,
+      maxlength: 500,
+    },
+    education: {
+      type: String,
+      maxlength: 200,
+    },
+    github: {
+      type: String,
+      match: [/^https:\/\/github\.com\/.+/, 'Invalid GitHub URL'],
+    },
+    linkedin: {
+      type: String,
+      match: [/^https:\/\/(www\.)?linkedin\.com\/.+/, 'Invalid LinkedIn URL'],
+    },
+    resume: {
+      originalName: String,
+      mimeType: String,
+      size: Number,
+      url: String,
+      uploadedAt: Date,
+    },
+    company: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+    },
+    clientNeeds: [{
+      type: String,
+      enum: ['find-freelancers','build-team','hire-for-project','find-skills','explore-creators']
+    }],
+    primaryRole: {
+      type: String,
+      enum: ['video-editor', 'content-creator', 'thumbnail-maker', 'script-writer', 'photographer'],
       index: true,
     },
     roles: [{
       type: String,
-      required: true,
+      enum: ['video-editor', 'content-creator', 'thumbnail-maker', 'script-writer', 'photographer'],
     }],
-    customRole: {
-      type: String,
-      default: null,
-      maxlength: [100, 'Custom role cannot exceed 100 characters'],
-    },
     skills: [{
       type: String,
       maxlength: [50, 'Skill name cannot exceed 50 characters'],
     }],
     experienceLevel: {
       type: String,
-      enum: ['beginner', 'intermediate', 'advanced', 'expert'],
-      required: true,
+      enum: ['beginner', 'intermediate', 'advanced', 'expert', 'professional'],
     },
-    tools: [{
-      type: String,
-      maxlength: [50, 'Tool name cannot exceed 50 characters'],
-    }],
     goals: [{
       type: String,
       enum: [
         'find-collaborators',
+        'find-projects',
+        'find-clients',
         'build-portfolio',
+        'showcase-work',
+        'get-discovered',
+        'grow-network',
+        'find-teams',
         'learn-skills',
         'earn-income',
-        'network',
-        'get-discovered',
       ],
     }],
+    workMode: {
+      type: String,
+      enum: ['remote', 'hybrid', 'on-site'],
+    },
+    workStyle: {
+      type: String,
+      enum: ['flexible', 'structured', 'fast-paced', 'long-term', 'short-term'],
+    },
     collaborationPreferences: {
       creatorRoles: [{
         type: String,
@@ -65,26 +114,8 @@ const creatorProfileSchema = new mongoose.Schema(
       }],
       duration: {
         type: String,
-        enum: ['one-time', 'short-term', 'long-term', 'ongoing'],
+        enum: ['one-time', 'short-term', 'long-term', 'ongoing', 'flexible'],
       },
-      workMode: {
-        type: String,
-        enum: ['remote', 'in-person', 'hybrid'],
-      },
-    },
-    workPreferences: {
-      categories: [{
-        type: String,
-        maxlength: [50, 'Category cannot exceed 50 characters'],
-      }],
-      industries: [{
-        type: String,
-        maxlength: [50, 'Industry cannot exceed 50 characters'],
-      }],
-      style: [{
-        type: String,
-        maxlength: [50, 'Style cannot exceed 50 characters'],
-      }],
     },
   },
   {
@@ -95,7 +126,6 @@ const creatorProfileSchema = new mongoose.Schema(
 // Index for efficient queries
 creatorProfileSchema.index({ primaryRole: 1, createdAt: -1 });
 creatorProfileSchema.index({ roles: 1 });
-creatorProfileSchema.index({ 'collaborationPreferences.creatorRoles': 1 });
 
 const CreatorProfile = mongoose.model('CreatorProfile', creatorProfileSchema);
 export default CreatorProfile;

@@ -1644,6 +1644,16 @@ button {
   text-align: center;
 }
 
+.cta-section .cta-canvas-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  height: auto;
+  margin: 0;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
 .cta-section .section-heading {
   color: var(--white);
   font-size: clamp(56px, 9vw, 120px);

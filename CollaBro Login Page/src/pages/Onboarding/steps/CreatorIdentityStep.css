@@ -79,6 +79,22 @@
   transition: all 0.2s ease;
 }
 
+.textarea-input {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.basic-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
 .text-input:focus {
   outline: none;
   border-color: var(--accent-cyan);

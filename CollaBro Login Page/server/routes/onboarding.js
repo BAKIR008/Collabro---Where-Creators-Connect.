@@ -40,6 +40,7 @@ router.get('/status', protect, async (req, res) => {
         completed: user.onboarding.status === 'completed',
         surveyVersion: user.onboarding.version,
         currentStepId: user.onboarding.currentStepId,
+        accountType: user.onboarding.accountType,
         completedAt: user.onboarding.completedAt,
       },
     });
@@ -82,15 +83,24 @@ router.get('/responses', protect, async (req, res) => {
     return res.json({
       success: true,
       profile: {
+        accountType: profile.accountType,
+        displayName: profile.displayName,
+        profileTitle: profile.profileTitle,
+        bio: profile.bio,
+        education: profile.education,
+        github: profile.github,
+        linkedin: profile.linkedin,
+        resume: profile.resume,
+        company: profile.company,
+        clientNeeds: profile.clientNeeds,
         primaryRole: profile.primaryRole,
         roles: profile.roles,
-        customRole: profile.customRole,
         skills: profile.skills,
         experienceLevel: profile.experienceLevel,
-        tools: profile.tools,
         goals: profile.goals,
+        workMode: profile.workMode,
+        workStyle: profile.workStyle,
         collaborationPreferences: profile.collaborationPreferences,
-        workPreferences: profile.workPreferences,
       },
     });
   } catch (err) {
@@ -110,12 +120,17 @@ router.patch('/responses', protect, async (req, res) => {
   try {
     const { currentStepId, ...responses } = req.body;
 
-    // Update user's current step
-    await User.findByIdAndUpdate(req.user._id, {
+    // Update user's current step and accountType
+    const userUpdate = {
       'onboarding.status': 'in_progress',
       'onboarding.currentStepId': currentStepId || null,
       'onboarding.lastSavedAt': new Date(),
-    });
+    };
+    if (responses.accountType !== undefined) {
+      userUpdate['onboarding.accountType'] = responses.accountType;
+    }
+    
+    await User.findByIdAndUpdate(req.user._id, userUpdate);
 
     // Find or create draft profile
     let profile = await CreatorProfile.findOne({ user: req.user._id });
@@ -124,18 +139,26 @@ router.patch('/responses', protect, async (req, res) => {
       profile = new CreatorProfile({ user: req.user._id });
     }
 
-    // Update only provided fields — flat fields are straightforward
+    // Update flat fields
+    if (responses.accountType !== undefined) profile.accountType = responses.accountType;
+    if (responses.displayName !== undefined) profile.displayName = responses.displayName;
+    if (responses.profileTitle !== undefined) profile.profileTitle = responses.profileTitle;
+    if (responses.bio !== undefined) profile.bio = responses.bio;
+    if (responses.education !== undefined) profile.education = responses.education;
+    if (responses.github !== undefined) profile.github = responses.github;
+    if (responses.linkedin !== undefined) profile.linkedin = responses.linkedin;
+    if (responses.resume !== undefined) profile.resume = responses.resume;
+    if (responses.company !== undefined) profile.company = responses.company;
+    if (responses.clientNeeds !== undefined) profile.clientNeeds = responses.clientNeeds;
     if (responses.roles !== undefined) profile.roles = responses.roles;
     if (responses.primaryRole !== undefined) profile.primaryRole = responses.primaryRole;
-    if (responses.customRole !== undefined) profile.customRole = responses.customRole;
     if (responses.skills !== undefined) profile.skills = responses.skills;
     if (responses.experienceLevel !== undefined) profile.experienceLevel = responses.experienceLevel;
-    if (responses.tools !== undefined) profile.tools = responses.tools;
     if (responses.goals !== undefined) profile.goals = responses.goals;
+    if (responses.workMode !== undefined) profile.workMode = responses.workMode;
+    // ensure workStyle is stored as a string
+    if (responses.workStyle !== undefined) profile.workStyle = typeof responses.workStyle === 'string' ? responses.workStyle : String(responses.workStyle);
 
-    // Nested subdocuments: merge field-by-field and call markModified so
-    // Mongoose detects the change. Direct object replacement can leave
-    // Mongoose unaware of which paths changed.
     if (responses.collaborationPreferences !== undefined) {
       const existing = profile.collaborationPreferences || {};
       const incoming = responses.collaborationPreferences;
@@ -150,30 +173,8 @@ router.patch('/responses', protect, async (req, res) => {
         duration: incoming.duration !== undefined
           ? incoming.duration
           : existing.duration,
-        workMode: incoming.workMode !== undefined
-          ? incoming.workMode
-          : existing.workMode,
       };
       profile.markModified('collaborationPreferences');
-    }
-
-    if (responses.workPreferences !== undefined) {
-      const existing = profile.workPreferences || {};
-      const incoming = responses.workPreferences;
-
-      profile.workPreferences = {
-        categories: incoming.categories !== undefined
-          ? incoming.categories
-          : (existing.categories || []),
-        industries: incoming.industries !== undefined
-          ? incoming.industries
-          : (existing.industries || []),
-        // Always store style as an array — guard against accidental string submission
-        style: incoming.style !== undefined
-          ? (Array.isArray(incoming.style) ? incoming.style : [])
-          : (Array.isArray(existing.style) ? existing.style : []),
-      };
-      profile.markModified('workPreferences');
     }
 
     // Save with validation disabled — drafts may be incomplete
@@ -200,18 +201,35 @@ router.post(
   '/complete',
   protect,
   [
-    // Basic required fields
+    // Common
+    body('accountType')
+      .isIn(['client', 'freelancer'])
+      .withMessage('Valid account type is required.'),
+    body('displayName')
+      .notEmpty().withMessage('Display name is required.')
+      .isLength({ max: 100 }).withMessage('Display name must not exceed 100 characters.'),
+
+    // Client-specific validation
+    body('clientNeeds')
+      .if(body('accountType').equals('client'))
+      .isArray({ min: 1 })
+      .withMessage('Select at least one need.'),
+
+    // Freelancer-specific validation
     body('roles')
+      .if(body('accountType').equals('freelancer'))
       .isArray({ min: 1, max: 5 })
       .withMessage('Select 1-5 creator roles.'),
     body('roles.*')
+      .if(body('accountType').equals('freelancer'))
       .custom((value) => {
-        if (!isValidRole(value) && value !== 'other') {
+        if (!isValidRole(value)) {
           throw new Error(`Invalid role: ${value}`);
         }
         return true;
       }),
     body('primaryRole')
+      .if(body('accountType').equals('freelancer'))
       .notEmpty()
       .withMessage('Primary role is required.')
       .custom((value, { req }) => {
@@ -221,38 +239,49 @@ router.post(
         return true;
       }),
     body('experienceLevel')
-      .isIn(['beginner', 'intermediate', 'advanced', 'expert'])
+      .if(body('accountType').equals('freelancer'))
+      .isIn(['beginner', 'intermediate', 'advanced', 'expert', 'professional'])
       .withMessage('Valid experience level required.'),
     body('skills')
+      .if(body('accountType').equals('freelancer'))
       .isArray({ min: 1, max: 15 })
       .withMessage('Add at least 1 skill (max 15).'),
     body('goals')
+      .if(body('accountType').equals('freelancer'))
       .isArray({ min: 1 })
       .withMessage('Select at least one goal.'),
     body('goals.*')
-      .isIn(['find-collaborators', 'build-portfolio', 'learn-skills', 'earn-income', 'network', 'get-discovered'])
+      .if(body('accountType').equals('freelancer'))
+      .isIn([
+        'find-collaborators',
+        'find-projects',
+        'find-clients',
+        'build-portfolio',
+        'showcase-work',
+        'get-discovered',
+        'grow-network',
+        'find-teams',
+        'learn-skills',
+        'earn-income',
+      ])
       .withMessage('Invalid goal value.'),
-    
-    // Collaboration preferences validation
-    body('collaborationPreferences.creatorRoles')
-      .isArray({ min: 1 })
-      .withMessage('Select at least one collaborator role.'),
-    body('collaborationPreferences.projectTypes')
-      .isArray({ min: 1 })
-      .withMessage('Select at least one project type.'),
-    body('collaborationPreferences.duration')
-      .isIn(['one-time', 'short-term', 'long-term', 'ongoing'])
-      .withMessage('Invalid duration value.'),
-    body('collaborationPreferences.workMode')
-      .isIn(['remote', 'in-person', 'hybrid'])
+    body('workMode')
+      .if(body('accountType').equals('freelancer'))
+      .isIn(['remote', 'hybrid', 'on-site'])
       .withMessage('Invalid work mode value.'),
+    body('workStyle')
+      .if(body('accountType').equals('freelancer'))
+      .isString()
+      .isIn(['flexible', 'structured', 'fast-paced', 'long-term', 'short-term'])
+      .withMessage('Invalid work style value.'),
     
     // Optional fields validation
-    body('tools').optional().isArray({ max: 15 }),
-    body('customRole').optional().isString().isLength({ max: 100 }),
-    body('workPreferences.categories').optional().isArray({ max: 10 }),
-    body('workPreferences.industries').optional().isArray({ max: 10 }),
-    body('workPreferences.style').optional().isArray({ max: 8 }),
+    body('profileTitle').optional().isString().isLength({ max: 100 }),
+    body('bio').optional().isString().isLength({ max: 500 }),
+    body('education').optional().isString().isLength({ max: 200 }),
+    body('github').optional().isString().matches(/^https:\/\/github\.com\/.+/).withMessage('Invalid GitHub URL'),
+    body('linkedin').optional().isString().matches(/^https:\/\/(www\.)?linkedin\.com\/.+/).withMessage('Invalid LinkedIn URL'),
+    body('company').optional().isString().isLength({ max: 100 }),
   ],
   async (req, res) => {
     try {
@@ -267,15 +296,24 @@ router.post(
       }
 
       const {
+        accountType,
+        displayName,
+        profileTitle,
+        bio,
+        education,
+        github,
+        linkedin,
+        resume,
+        company,
+        clientNeeds,
         roles,
         primaryRole,
-        customRole,
         skills,
         experienceLevel,
-        tools,
         goals,
+        workMode,
+        workStyle,
         collaborationPreferences,
-        workPreferences,
       } = req.body;
 
       // Create or update profile — upsert pattern prevents duplicates
@@ -286,36 +324,34 @@ router.post(
       }
 
       // Assign flat fields
-      profile.roles = roles;
-      profile.primaryRole = primaryRole;
-      profile.customRole = customRole || null;
+      profile.accountType = accountType;
+      profile.displayName = displayName;
+      profile.profileTitle = profileTitle || undefined;
+      profile.bio = bio || undefined;
+      profile.education = education || undefined;
+      profile.github = github || undefined;
+      profile.linkedin = linkedin || undefined;
+      profile.resume = resume || undefined;
+      profile.company = company || undefined;
+      profile.clientNeeds = clientNeeds || [];
+      
+      profile.roles = roles || [];
+      profile.primaryRole = primaryRole || undefined;
       profile.skills = skills || [];
-      profile.experienceLevel = experienceLevel;
-      profile.tools = tools || [];
+      profile.experienceLevel = experienceLevel || undefined;
       profile.goals = goals || [];
+      profile.workMode = workMode || undefined;
+      profile.workStyle = workStyle !== undefined ? String(workStyle) : undefined;
 
-      // Assign nested collaborationPreferences field-by-field to avoid
-      // Mongoose losing track of changes on a subdocument replacement.
       const collab = collaborationPreferences || {};
       profile.collaborationPreferences = {
         creatorRoles: collab.creatorRoles || [],
         projectTypes: collab.projectTypes || [],
         duration: collab.duration || undefined,
-        workMode: collab.workMode || undefined,
       };
       profile.markModified('collaborationPreferences');
 
-      // Assign nested workPreferences field-by-field
-      const work = workPreferences || {};
-      profile.workPreferences = {
-        categories: work.categories || [],
-        industries: work.industries || [],
-        style: Array.isArray(work.style) ? work.style : [],
-      };
-      profile.markModified('workPreferences');
-
       // Save profile FIRST — only mark onboarding complete if it succeeds.
-      // This keeps the User document consistent with the profile document.
       await profile.save();
 
       // Mark onboarding complete only after successful profile save
@@ -323,6 +359,7 @@ router.post(
         'onboarding.status': 'completed',
         'onboarding.completedAt': new Date(),
         'onboarding.version': 1,
+        'onboarding.accountType': accountType,
       });
 
       console.log(`✅ Onboarding completed for user ${req.user.email}`);

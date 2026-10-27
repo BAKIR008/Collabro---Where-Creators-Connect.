@@ -9,6 +9,9 @@ import { StepHeader, RoleCard } from '../components';
 import './CreatorIdentityStep.css';
 
 export const CreatorIdentityStep = ({ data, onChange }) => {
+  const [displayName, setDisplayName] = useState(data.displayName || '');
+  const [profileTitle, setProfileTitle] = useState(data.profileTitle || '');
+  const [bio, setBio] = useState(data.bio || '');
   const [selectedRoles, setSelectedRoles] = useState(data.roles || []);
   const [primaryRole, setPrimaryRole] = useState(data.primaryRole || null);
   const [customRole, setCustomRole] = useState(data.customRole || '');
@@ -65,19 +68,68 @@ export const CreatorIdentityStep = ({ data, onChange }) => {
    */
   useEffect(() => {
     onChange({
+      displayName,
+      profileTitle,
+      bio,
       roles: selectedRoles,
       primaryRole: primaryRole,
       customRole: hasOtherRole ? customRole : '',
     });
-  }, [selectedRoles, primaryRole, customRole, hasOtherRole, onChange]);
+  }, [displayName, profileTitle, bio, selectedRoles, primaryRole, customRole, hasOtherRole, onChange]);
 
   return (
     <div className="creator-identity-step">
       <StepHeader
         icon="👤"
         title="Who Are You?"
-        subtitle="Select the roles that define your creative identity"
+        subtitle="Tell us about yourself and your creative identity"
       />
+
+      {/* Basic Info */}
+      <div className="basic-info-section">
+        <div className="input-group">
+          <label htmlFor="displayName" className="input-label">Display Name *</label>
+          <input
+            id="displayName"
+            type="text"
+            className="text-input"
+            placeholder="e.g., Jane Doe or Creative Studio"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            maxLength={100}
+            required
+          />
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="profileTitle" className="input-label">Profile Title</label>
+          <input
+            id="profileTitle"
+            type="text"
+            className="text-input"
+            placeholder="e.g., Award-winning Filmmaker & Photographer"
+            value={profileTitle}
+            onChange={(e) => setProfileTitle(e.target.value)}
+            maxLength={100}
+          />
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="bio" className="input-label">Bio</label>
+          <textarea
+            id="bio"
+            className="text-input textarea-input"
+            placeholder="Tell us about your background, what you create, and what you're passionate about..."
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            maxLength={500}
+            rows={4}
+          />
+          <p className="input-help">{bio.length}/500 characters</p>
+        </div>
+      </div>
+
+      <div className="section-divider" style={{margin: '2rem 0', borderBottom: '1px solid var(--border-light)'}}></div>
 
       {/* Selection info */}
       <div className="selection-info">

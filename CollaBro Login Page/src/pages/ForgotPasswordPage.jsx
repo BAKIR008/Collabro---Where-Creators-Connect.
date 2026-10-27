@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import CustomCursor from '../components/CustomCursor.jsx'
 import ToastContainer, { useToast } from '../components/ToastSystem.jsx'
 
@@ -72,10 +72,11 @@ function LeftPanel() {
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { toasts, addToast, removeToast } = useToast()
 
-  const [email, setEmail] = useState('')
-  const [touched, setTouched] = useState(false)
+  const [email, setEmail] = useState(location.state?.email || '')
+  const [touched, setTouched] = useState(!!location.state?.email)
   const [isLoading, setIsLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
 

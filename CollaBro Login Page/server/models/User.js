@@ -79,6 +79,11 @@ const userSchema = new mongoose.Schema(
         enum: ['not_started', 'in_progress', 'completed'],
         default: 'not_started',
       },
+      accountType: {
+        type: String,
+        enum: ['client', 'freelancer'],
+        default: null,
+      },
       completedAt: {
         type: Date,
         default: null,

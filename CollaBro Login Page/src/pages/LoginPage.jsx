@@ -194,8 +194,24 @@ export default function LoginPage() {
 
       addToast('success', 'Welcome back! 👋', `Signed in as ${data.user.name}`, 3000)
 
+      // Fetch onboarding status to decide redirect
+      try {
+        const statusRes = await fetch('/api/onboarding/status', {
+          credentials: 'include',
+        })
+        if (statusRes.ok) {
+          const statusData = await statusRes.json()
+          if (statusData.onboarding?.status === 'completed') {
+            setTimeout(() => navigate('/dashboard'), 1200)
+            return
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching onboarding status', err)
+      }
+
       // Short delay for toast visibility, then redirect
-      setTimeout(() => navigate('/dashboard'), 1200)
+      setTimeout(() => navigate('/onboarding'), 1200)
     } catch (err) {
       const message = err.message || 'Something went wrong. Please try again.'
 
@@ -237,7 +253,23 @@ export default function LoginPage() {
       }
 
       addToast('success', 'Google sign-in successful! 🎉', `Welcome, ${data.user.name}!`, 3000)
-      setTimeout(() => navigate('/dashboard'), 1200)
+      
+      try {
+        const statusRes = await fetch('/api/onboarding/status', {
+          credentials: 'include',
+        })
+        if (statusRes.ok) {
+          const statusData = await statusRes.json()
+          if (statusData.onboarding?.status === 'completed') {
+            setTimeout(() => navigate('/dashboard'), 1200)
+            return
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching onboarding status', err)
+      }
+
+      setTimeout(() => navigate('/onboarding'), 1200)
     } catch (err) {
       const message = err.message || 'Google authentication failed. Please try again.'
       setGlobalError(message)
@@ -473,13 +505,31 @@ export default function LoginPage() {
                   Remember me
                 </label>
 
-                <a
-                  href="/forgot-password"
+                <button
+                  type="button"
                   className="forgot-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!email.trim()) {
+                      setTouched((p) => ({ ...p, email: true }));
+                      // Show error "Please enter your email address first"
+                      // Actually, the prompt says show error, focus field, DON'T navigate
+                      // The error will be shown by validateEmail via emailError when touched is set.
+                      document.getElementById('email')?.focus();
+                      return;
+                    }
+                    const err = validateEmail(email);
+                    if (err) {
+                      setTouched((p) => ({ ...p, email: true }));
+                      document.getElementById('email')?.focus();
+                      return;
+                    }
+                    navigate('/forgot-password', { state: { email } });
+                  }}
                   aria-label="Forgot your password? Reset it here."
                 >
                   Forgot Password?
-                </a>
+                </button>
               </div>
 
               {/* Submit Button */}
